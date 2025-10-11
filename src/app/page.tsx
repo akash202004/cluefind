@@ -23,12 +23,9 @@ export default function HomePage() {
             <Link href="/leaderboard" className="font-bold uppercase text-sm hover:text-accent transition-colors">
               Leaderboard
             </Link>
-            <button className="btn-outline text-sm px-4 py-2">
-              Sign In
-            </button>
-            <button className="btn-secondary text-sm px-4 py-2">
+            <Link href="/get-started" className="btn-primary text-sm px-4 py-2">
               Get Started
-            </button>
+            </Link>
           </nav>
         </div>
       </header>
@@ -65,7 +62,7 @@ export default function HomePage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-slide-in-up" style={{animationDelay: "0.3s"}}>
-            <Link href="/auth/signin" className="btn-primary inline-flex items-center gap-2">
+            <Link href="/get-started" className="btn-primary inline-flex items-center gap-2">
               Get Started
               <ArrowRight className="w-5 h-5" />
             </Link>
@@ -188,7 +185,7 @@ export default function HomePage() {
             <p className="text-subtitle mb-8 text-muted-foreground">
               Stop missing opportunities. Start showcasing your skills.
             </p>
-            <Link href="/auth/signin" className="btn-secondary inline-flex items-center gap-2">
+            <Link href="/get-started" className="btn-secondary inline-flex items-center gap-2">
               Get Started
               <ArrowRight className="w-5 h-5" />
             </Link>

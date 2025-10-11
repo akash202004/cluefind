@@ -92,9 +92,7 @@ const mockUser = {
     }
   ],
   stats: {
-    profileViews: 2847,
-    projectViews: 5421,
-    endorsements: 23,
+    vouches: 23,
     rating: 4.8
   }
 };
@@ -174,17 +172,9 @@ export default function PortfolioPage({ params }: PortfolioPageProps) {
 
           {/* Stats */}
           <div className="flex flex-wrap gap-6 justify-center">
-            <div className="stat-box">
-              <div className="text-2xl font-black mb-1">{user.stats.profileViews.toLocaleString()}</div>
-              <div className="text-sm uppercase tracking-wide opacity-90">Profile Views</div>
-            </div>
             <div className="stat-box bg-accent text-accent-foreground">
-              <div className="text-2xl font-black mb-1">{user.stats.projectViews.toLocaleString()}</div>
-              <div className="text-sm uppercase tracking-wide opacity-90">Project Views</div>
-            </div>
-            <div className="stat-box bg-feature-green text-primary-foreground">
-              <div className="text-2xl font-black mb-1">{user.stats.endorsements}</div>
-              <div className="text-sm uppercase tracking-wide opacity-90">Endorsements</div>
+              <div className="text-2xl font-black mb-1">{user.stats.vouches}</div>
+              <div className="text-sm uppercase tracking-wide opacity-90">Vouches</div>
             </div>
             <div className="stat-box bg-feature-purple text-primary-foreground">
               <div className="text-2xl font-black mb-1">{user.stats.rating}</div>
@@ -195,13 +185,13 @@ export default function PortfolioPage({ params }: PortfolioPageProps) {
 
         {/* Skills Section */}
         <section className="mb-12">
-          <h2 className="text-section mb-8 text-center">Skills & Endorsements</h2>
+          <h2 className="text-section mb-8 text-center">Skills & Vouches</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {user.skills.map((skill, index) => (
               <div key={index} className="card-brutalist">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-black uppercase tracking-wide">{skill.name}</h3>
-                  <span className="text-sm font-bold text-muted-foreground">{skill.endorsements} endorsements</span>
+                  <span className="text-sm font-bold text-muted-foreground">{skill.endorsements} vouches</span>
                 </div>
                 <div className="progress-bar mb-2">
                   <div className="progress-fill bg-feature-blue" style={{width: `${skill.level}%`}}></div>
@@ -245,31 +235,31 @@ export default function PortfolioPage({ params }: PortfolioPageProps) {
           </div>
         </section>
 
-        {/* Endorsements Section */}
+        {/* Vouches Section */}
         <section className="mb-12">
-          <h2 className="text-section mb-8 text-center">Endorsements</h2>
+          <h2 className="text-section mb-8 text-center">Vouches</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {user.endorsements.map((endorsement) => (
-              <div key={endorsement.id} className="card-brutalist">
+            {user.endorsements.map((vouch) => (
+              <div key={vouch.id} className="card-brutalist">
                 <div className="flex items-start gap-4 mb-4">
                   <div className="w-12 h-12 bg-accent rounded-full border-4 border-primary shadow-brutalist-sm"></div>
                   <div>
-                    <h3 className="font-black text-lg uppercase tracking-wide">{endorsement.from}</h3>
-                    <p className="text-sm text-muted-foreground">{endorsement.fromTitle}</p>
+                    <h3 className="font-black text-lg uppercase tracking-wide">{vouch.from}</h3>
+                    <p className="text-sm text-muted-foreground">{vouch.fromTitle}</p>
                     <div className="flex items-center gap-1 mt-1">
-                      {[...Array(endorsement.rating)].map((_, i) => (
+                      {[...Array(vouch.rating)].map((_, i) => (
                         <Star key={i} className="w-4 h-4 fill-feature-yellow text-feature-yellow" />
                       ))}
                     </div>
                   </div>
                 </div>
-                <p className="text-body mb-3">"{endorsement.message}"</p>
+                <p className="text-body mb-3">"{vouch.message}"</p>
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 bg-feature-blue text-primary-foreground text-sm font-bold uppercase tracking-wide rounded">
-                    {endorsement.skill}
+                    {vouch.skill}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {new Date(endorsement.createdAt).toLocaleDateString()}
+                    {new Date(vouch.createdAt).toLocaleDateString()}
                   </span>
                 </div>
               </div>

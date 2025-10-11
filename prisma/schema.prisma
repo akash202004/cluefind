@@ -11,13 +11,55 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  githubLogin   String   @unique
-  name          String?
-  email         String?
-  avatarUrl     String?
+  id                  String   @id @default(cuid())
+  email               String   @unique
+  emailVerified       Boolean  @default(false)
+  password            String?
+  name                String?
+  image               String?
+  onboardingComplete  Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
   profile       Profile?
-  createdAt     DateTime @default(now())
+  vouches       Vouch[] @relation("VouchesGiven")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Profile {
@@ -26,14 +68,13 @@ model Profile {
   bio           String?
   skills        String[] @default([])
   resumeUrl     String?
-  startCount    Int      @default(0)
   lastSyncedAt  DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   user          User     @relation(fields: [userId], references: [id])
   repos         Repo[]
-  stars         Star[]
+  vouches       Vouch[]
 }
 
 model Repo {
@@ -50,12 +91,15 @@ model Repo {
   profile     Profile @relation(fields: [profileId], references: [id])
 }
   
-model Star {
-  id         String   @id @default(cuid())
-  profileId  String
-  ipHash     String   
-  userAgent  String?
-  createdAt  DateTime @default(now())
+model Vouch {
+  id          String   @id @default(cuid())
+  profileId   String
+  voucherId   String
+  skill       String?
+  message     String?
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  profile    Profile  @relation(fields: [profileId], references: [id])
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  voucher     User     @relation("VouchesGiven", fields: [voucherId], references: [id])
 }

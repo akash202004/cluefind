@@ -8,7 +8,7 @@ const leaderboardData = [
     rank: 1,
     username: "codewizard",
     name: "Alex Chen",
-    stars: 2543,
+    vouches: 23,
     skills: ["React", "TypeScript", "Node.js"],
     avatar: "AC",
     color: "bg-feature-purple",
@@ -18,7 +18,7 @@ const leaderboardData = [
     rank: 2,
     username: "devmaster",
     name: "Sarah Johnson",
-    stars: 2234,
+    vouches: 19,
     skills: ["Next.js", "Python", "AWS"],
     avatar: "SJ",
     color: "bg-feature-blue",
@@ -28,7 +28,7 @@ const leaderboardData = [
     rank: 3,
     username: "techguru",
     name: "Mike Williams",
-    stars: 1876,
+    vouches: 16,
     skills: ["Go", "Docker", "Kubernetes"],
     avatar: "MW",
     color: "bg-feature-yellow",
@@ -38,7 +38,7 @@ const leaderboardData = [
     rank: 4,
     username: "codeninj a",
     name: "Emma Davis",
-    stars: 1654,
+    vouches: 14,
     skills: ["Vue.js", "GraphQL", "MongoDB"],
     avatar: "ED",
     color: "bg-feature-green",
@@ -48,7 +48,7 @@ const leaderboardData = [
     rank: 5,
     username: "fullstack",
     name: "David Lee",
-    stars: 1432,
+    vouches: 12,
     skills: ["Ruby", "Rails", "PostgreSQL"],
     avatar: "DL",
     color: "bg-feature-red",
@@ -105,19 +105,19 @@ export default function LeaderboardPage() {
             Leaderboard
           </h1>
           <p className="text-subtitle">
-            The best developers ranked by community stars
+            The best developers ranked by community vouches
           </p>
         </div>
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
           <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">10,234</div>
+            <div className="text-3xl font-black mb-2">1,234</div>
             <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Developers</div>
           </div>
           <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">45,678</div>
-            <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Stars Given</div>
+            <div className="text-3xl font-black mb-2">5,678</div>
+            <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Vouches</div>
           </div>
           <div className="card-brutalist text-center">
             <div className="text-3xl font-black mb-2">892</div>
@@ -174,14 +174,14 @@ export default function LeaderboardPage() {
                   </div>
                 </div>
 
-                {/* Stars */}
+                {/* Vouches */}
                 <div className="flex items-center gap-2">
                   <div className="stat-box bg-primary text-primary-foreground">
                     <div className="flex items-center gap-2">
                       <Star className="w-6 h-6 fill-accent text-accent" />
-                      <span className="text-2xl font-black">{dev.stars.toLocaleString()}</span>
+                      <span className="text-2xl font-black">{dev.vouches.toLocaleString()}</span>
                     </div>
-                    <div className="text-xs uppercase tracking-wide opacity-80 mt-1">Stars</div>
+                    <div className="text-xs uppercase tracking-wide opacity-80 mt-1">Vouches</div>
                   </div>
                 </div>
 

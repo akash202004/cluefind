@@ -1,35 +1,44 @@
-import { NextAuthOptions } from 'next-auth';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import GitHubProvider from 'next-auth/providers/github';
-import { prisma } from './db';
+import { betterAuth } from "better-auth"
+import { prismaAdapter } from "better-auth/adapters/prisma"
+import { prisma } from "./db"
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    GitHubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
-  ],
-  callbacks: {
-    session: async ({ session, token }) => {
-      if (session?.user && token?.sub) {
-        session.user.id = token.sub;
-      }
-      return session;
+export const auth = betterAuth({
+  database: prismaAdapter(prisma, {
+    provider: "postgresql"
+  }),
+  socialProviders: {
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID || "",
+      clientSecret: process.env.GITHUB_CLIENT_SECRET || "",
     },
-    jwt: async ({ user, token }) => {
-      if (user) {
-        token.uid = user.id;
-      }
-      return token;
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     },
   },
   session: {
-    strategy: 'jwt',
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
   },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
+  user: {
+    additionalFields: {
+      username: {
+        type: "string",
+        required: false,
+      },
+      bio: {
+        type: "string",
+        required: false,
+      },
+      avatar: {
+        type: "string",
+        required: false,
+      },
+      onboardingComplete: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+      },
+    },
   },
-};
+})
