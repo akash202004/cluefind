@@ -6,12 +6,12 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "DevSync - Developer Portfolio & Endorsements",
+  title: "Perpetual - Developer Portfolio & Endorsements",
   description: "Showcase your developer portfolio and get verified skill endorsements from colleagues",
   keywords: ["developer", "portfolio", "endorsements", "skills", "projects"],
-  authors: [{ name: "DevSync Team" }],
-  creator: "DevSync",
-  publisher: "DevSync",
+  authors: [{ name: "Perpetual Team" }],
+  creator: "Perpetual",
+  publisher: "Perpetual",
   formatDetection: {
     email: false,
     address: false,
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    title: "DevSync - Developer Portfolio & Endorsements",
+    title: "Perpetual - Developer Portfolio & Endorsements",
     description: "Showcase your developer portfolio and get verified skill endorsements from colleagues",
-    siteName: "DevSync",
+    siteName: "Perpetual",
   },
   twitter: {
     card: "summary_large_image",
-    title: "DevSync - Developer Portfolio & Endorsements",
+    title: "Perpetual - Developer Portfolio & Endorsements",
     description: "Showcase your developer portfolio and get verified skill endorsements from colleagues",
-    creator: "@devsync",
+    creator: "@perpetual",
   },
   robots: {
     index: true,
