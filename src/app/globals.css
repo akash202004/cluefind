@@ -1,68 +1,542 @@
-
+/* eslint-disable */
+/* stylelint-disable */
+@tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* MindGrid Color System - Enhanced */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --popover-foreground: 222 47% 11%;
+    
+    /* Primary - Dark Navy/Black */
+    --primary: 222 47% 11%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - White with borders */
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 222 47% 11%;
+    
+    /* Accent - Bright Yellow */
+    --accent: 45 93% 47%;
+    --accent-foreground: 222 47% 11%;
+    
+    /* Muted - Light Gray */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    
+    /* Destructive - Red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Border - Dark */
+    --border: 222 47% 11%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 11%;
     --radius: 0.5rem;
+    
+    /* Feature Colors - MindGrid Palette */
+    --feature-purple: 270 91% 65%;
+    --feature-blue: 200 98% 39%;
+    --feature-yellow: 45 93% 47%;
+    --feature-green: 142 76% 36%;
+    --feature-red: 0 84% 60%;
+    --feature-indigo: 239 84% 67%;
+    
+    /* Additional MindGrid Colors */
+    --grid-bg: 220 13% 95%;
+    --grid-dot: 220 9% 70%;
+    --success: 142 76% 36%;
+    --warning: 45 93% 47%;
+    --info: 200 98% 39%;
+    --error: 0 84% 60%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --background: 222 47% 11%;
+    --foreground: 0 0% 100%;
+    --card: 222 47% 11%;
+    --card-foreground: 0 0% 100%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 45 93% 47%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 212 27% 84%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* MindGrid Button Styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg border-4 border-primary 
+           hover:bg-primary/90 transition-all duration-200 
+           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+           hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] 
+           hover:translate-x-[2px] hover:translate-y-[2px]
+           active:shadow-none active:translate-x-[4px] active:translate-y-[4px];
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 900;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .btn-secondary {
+    @apply bg-accent text-accent-foreground px-6 py-3 rounded-lg border-4 border-primary 
+           hover:bg-accent/90 transition-all duration-200 
+           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+           hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] 
+           hover:translate-x-[2px] hover:translate-y-[2px]
+           active:shadow-none active:translate-x-[4px] active:translate-y-[4px];
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 900;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .btn-outline {
+    @apply bg-secondary text-secondary-foreground px-6 py-3 rounded-lg border-4 border-primary 
+           hover:bg-muted transition-all duration-200 
+           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+           hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] 
+           hover:translate-x-[2px] hover:translate-y-[2px]
+           active:shadow-none active:translate-x-[4px] active:translate-y-[4px];
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 900;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  /* MindGrid Card Styles */
+  .card-brutalist {
+    @apply bg-card border-4 border-primary rounded-lg p-6 
+           shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] 
+           hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+           hover:translate-x-[4px] hover:translate-y-[4px] 
+           transition-all duration-200;
+  }
+
+  .card-feature {
+    @apply bg-card border-4 border-primary rounded-lg p-8 
+           shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] 
+           transition-all duration-200;
+  }
+
+  /* Badge Styles */
+  .badge {
+    @apply inline-flex items-center gap-2 px-4 py-2 
+           border-3 border-primary rounded-lg 
+           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)];
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Icon Box Styles */
+  .icon-box {
+    @apply w-16 h-16 flex items-center justify-center 
+           border-4 border-primary rounded-lg mb-4 
+           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)];
+  }
+
+  .icon-box-purple {
+    @apply icon-box bg-[hsl(var(--feature-purple))];
+  }
+
+  .icon-box-blue {
+    @apply icon-box bg-[hsl(var(--feature-blue))];
+  }
+
+  .icon-box-yellow {
+    @apply icon-box bg-[hsl(var(--feature-yellow))];
+  }
+
+  .icon-box-green {
+    @apply icon-box bg-[hsl(var(--feature-green))];
+  }
+
+  .icon-box-red {
+    @apply icon-box bg-[hsl(var(--feature-red))];
+  }
+
+  .icon-box-indigo {
+    @apply icon-box bg-[hsl(var(--feature-indigo))];
+  }
+
+  /* Stat Box Styles */
+  .stat-box {
+    @apply bg-primary text-primary-foreground px-8 py-4 
+           border-4 border-primary rounded-lg 
+           shadow-[6px_6px_0px_0px_rgba(0,0,0,1)];
+  }
+
+  /* Decorative Shapes */
+  .shape-square {
+    @apply w-16 h-16 border-4 border-primary rounded-lg 
+           shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] 
+           transform rotate-12;
+  }
+
+  .shape-diamond {
+    @apply w-16 h-16 border-4 border-primary rounded-lg 
+           shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] 
+           transform rotate-45;
+  }
+
+  /* MindGrid Grid Pattern */
+  .grid-pattern {
+    background-image: 
+      radial-gradient(circle, hsl(var(--grid-dot)) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+  }
+
+  /* Subtle Dot Grid Background */
+  .dot-grid-bg {
+    background-image: 
+      radial-gradient(circle, rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+  }
+
+  /* MindGrid Widget Styles */
+  .widget {
+    @apply bg-card border-4 border-primary rounded-lg p-6 
+           shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] 
+           hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+           hover:translate-x-[4px] hover:translate-y-[4px] 
+           transition-all duration-200;
+  }
+
+  .widget-header {
+    @apply flex items-center justify-between mb-4 pb-4 border-b-4 border-primary;
+  }
+
+  .widget-title {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .widget-content {
+    @apply space-y-3;
+  }
+
+  /* MindGrid Progress Bar */
+  .progress-bar {
+    @apply w-full h-6 bg-muted border-4 border-primary rounded-lg overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-accent transition-all duration-500 ease-out;
+  }
+
+  /* MindGrid Status Indicators */
+  .status-online {
+    @apply w-3 h-3 bg-feature-green border-2 border-primary rounded-full;
+  }
+
+  .status-offline {
+    @apply w-3 h-3 bg-feature-red border-2 border-primary rounded-full;
+  }
+
+  .status-busy {
+    @apply w-3 h-3 bg-feature-yellow border-2 border-primary rounded-full;
+  }
+
+  /* MindGrid Input Styles */
+  .input-brutalist {
+    @apply w-full px-4 py-3 border-4 border-primary rounded-lg 
+           bg-background text-foreground placeholder:text-muted-foreground
+           focus:outline-none focus:ring-4 focus:ring-accent/20
+           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+           focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+           transition-all duration-200;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  /* MindGrid Modal Styles */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50;
+  }
+
+  .modal-content {
+    @apply fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+           bg-card border-4 border-primary rounded-lg p-8 
+           shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] 
+           max-w-lg w-full mx-4;
+  }
+
+  /* MindGrid Toggle Switch */
+  .toggle-switch {
+    @apply relative inline-block w-16 h-8 bg-muted border-4 border-primary rounded-full 
+           shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] 
+           transition-all duration-200;
+  }
+
+  .toggle-switch.active {
+    @apply bg-accent;
+  }
+
+  .toggle-thumb {
+    @apply absolute top-1 left-1 w-6 h-6 bg-primary rounded-full 
+           shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] 
+           transition-all duration-200;
+  }
+
+  .toggle-switch.active .toggle-thumb {
+    @apply translate-x-8;
+  }
+
+  /* MindGrid Tab Styles */
+  .tab-list {
+    @apply flex border-b-4 border-primary mb-6;
+  }
+
+  .tab-button {
+    @apply px-6 py-3 border-4 border-b-0 border-primary bg-muted text-muted-foreground
+           font-bold uppercase text-sm tracking-wide
+           hover:bg-accent hover:text-accent-foreground
+           transition-all duration-200;
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  .tab-button.active {
+    @apply bg-card text-foreground;
+  }
+
+  /* MindGrid Loading Spinner */
+  .spinner {
+    @apply w-8 h-8 border-4 border-primary border-t-accent rounded-full animate-spin;
+  }
+
+  /* MindGrid Notification Styles */
+  .notification {
+    @apply fixed top-4 right-4 bg-card border-4 border-primary rounded-lg p-4 
+           shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] 
+           z-50 max-w-sm;
+  }
+
+  .notification-success {
+    @apply border-feature-green bg-feature-green/10;
+  }
+
+  .notification-error {
+    @apply border-feature-red bg-feature-red/10;
+  }
+
+  .notification-warning {
+    @apply border-feature-yellow bg-feature-yellow/10;
+  }
+
+  .notification-info {
+    @apply border-feature-blue bg-feature-blue/10;
+  }
+}
+
+@layer utilities {
+  /* Typography - MindGrid Style */
+  .text-hero {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 900;
+    font-size: clamp(48px, 8vw, 96px);
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+
+  .text-section {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 900;
+    font-size: clamp(32px, 5vw, 60px);
+    text-transform: uppercase;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+  }
+
+  .text-subtitle {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 700;
+    font-size: clamp(14px, 2vw, 18px);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .text-body {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 700;
+    font-size: clamp(16px, 2.5vw, 24px);
+    text-transform: none;
+    letter-spacing: normal;
+    line-height: 1.4;
+    color: hsl(var(--foreground) / 0.8);
+  }
+
+  .text-button {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-weight: 900;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  /* Animations */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-tilt {
+    animation: tilt 10s infinite linear;
+  }
+
+  .animate-slide-in-up {
+    animation: slideInUp 0.6s ease-out;
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.6s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.6s ease-out;
+  }
+
+  /* MindGrid Utility Classes */
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--feature-blue)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--feature-blue))) 1;
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px hsl(var(--accent) / 0.3);
+  }
+
+  .backdrop-blur-brutalist {
+    backdrop-filter: blur(8px);
+    background: hsl(var(--background) / 0.8);
+  }
+
+  /* MindGrid Layout Utilities */
+  .container-brutalist {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-brutalist {
+    @apply py-20 border-y-4 border-primary;
+  }
+
+  .grid-brutalist {
+    @apply grid gap-8;
+  }
+
+  .flex-brutalist {
+    @apply flex items-center justify-between;
+  }
+
+  /* MindGrid Spacing Utilities */
+  .space-brutalist > * + * {
+    @apply mt-8;
+  }
+
+  .space-brutalist-sm > * + * {
+    @apply mt-4;
+  }
+
+  .space-brutalist-lg > * + * {
+    @apply mt-12;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(12deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(12deg);
+  }
+}
+
+@keyframes tilt {
+  0%, 50%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(5deg);
+  }
+  75% {
+    transform: rotate(-5deg);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
