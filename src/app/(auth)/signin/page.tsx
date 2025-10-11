@@ -23,10 +23,10 @@ export default function SignInPage() {
           </div>
 
           {/* GitHub OAuth Button */}
-          <button className="w-full bg-primary text-primary-foreground px-6 py-4 rounded-lg border-4 border-primary hover:bg-primary/90 transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] flex items-center justify-center gap-3 mb-6">
+          <Link href="/onboarding" className="w-full bg-primary text-primary-foreground px-6 py-4 rounded-lg border-4 border-primary hover:bg-primary/90 transition-all duration-200 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px] flex items-center justify-center gap-3 mb-6">
             <Github className="w-5 h-5" />
             <span className="font-black uppercase tracking-wide">Continue with GitHub</span>
-          </button>
+          </Link>
 
           {/* Divider */}
           <div className="flex items-center gap-4 mb-6">
