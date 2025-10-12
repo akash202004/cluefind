@@ -23,11 +23,12 @@ const repoService = new RepoService();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // First verify the profile exists
-    await profileService.getProfileById(params.id);
+    await profileService.getProfileById(resolvedParams.id);
 
     const { searchParams } = new URL(request.url);
     const { page, limit } = validateQuery(
@@ -35,7 +36,7 @@ export async function GET(
       getReposByProfileSchema.omit({ profileId: true })
     );
 
-    const result = await repoService.getReposByProfile(params.id, page, limit);
+    const result = await repoService.getReposByProfile(resolvedParams.id, page, limit);
 
     return NextResponse.json(
       createPaginatedResponse(
@@ -56,19 +57,26 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // First verify the profile exists
-    await profileService.getProfileById(params.id);
+    await profileService.getProfileById(resolvedParams.id);
 
     const body = await parseBody(request);
     const validatedData = validateRequest(body, createRepoSchema);
 
     // Set the profileId from the URL params
-    validatedData.profileId = params.id;
+    validatedData.profileId = resolvedParams.id;
 
-    const repo = await repoService.createRepo(validatedData);
+    // Ensure required fields have defaults
+    const repoData = {
+      ...validatedData,
+      fork: validatedData.fork ?? false,
+    };
+
+    const repo = await repoService.createRepo(repoData);
 
     return NextResponse.json(
       createSuccessResponse(repo, "Repository created successfully"),

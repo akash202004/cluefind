@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { generateText } from 'ai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -7,56 +6,73 @@ const openai = new OpenAI({
 
 export const aiService = {
   async generateProfileSummary(userData: any): Promise<string> {
-    const { text } = await generateText({
-      model: openai('gpt-4'),
-      prompt: `Generate a professional 2-3 sentence summary for a developer with:
-        Skills: ${userData.skills?.join(', ') || 'Not specified'}
-        Experience: ${userData.experience || 'Not specified'}
-        Projects: ${userData.projects?.length || 0} projects
-        Bio: ${userData.bio || 'Not provided'}
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'user',
+          content: `Generate a professional 2-3 sentence summary for a developer based on their resume:
         
-        Make it engaging and highlight key strengths.`,
-      maxTokens: 150,
+        Resume Content: ${userData.resume || 'Not provided'}
+        
+        Make it engaging and highlight key strengths.`
+        }
+      ],
+      max_tokens: 150,
     });
-    return text;
+    return completion.choices[0]?.message?.content || 'Professional developer with strong technical skills.';
   },
 
   async generateProjectDescription(projectData: any): Promise<string> {
-    const { text } = await generateText({
-      model: openai('gpt-4'),
-      prompt: `Create a compelling project description for:
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'user',
+          content: `Create a compelling project description for:
         Title: ${projectData.title}
         Technologies: ${projectData.technologies?.join(', ') || 'Not specified'}
         Features: ${projectData.features?.join(', ') || 'Not specified'}
         
         Make it professional, highlight technical achievements, and explain the value.
-        Keep it under 200 words.`,
-      maxTokens: 200,
+        Keep it under 200 words.`
+        }
+      ],
+      max_tokens: 200,
     });
-    return text;
+    return completion.choices[0]?.message?.content || 'A well-designed project showcasing technical expertise.';
   },
 
   async generateSkillRecommendations(userProfile: any): Promise<string[]> {
-    const { text } = await generateText({
-      model: openai('gpt-4'),
-      prompt: `Based on this developer's profile:
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'user',
+          content: `Based on this developer's profile:
         Current skills: ${userProfile.skills?.join(', ') || 'Not specified'}
         Experience level: ${userProfile.experience || 'Not specified'}
         Projects: ${userProfile.projects?.map((p: any) => p.technologies).flat().join(', ') || 'Not specified'}
         
         Recommend 5 new skills they should learn to advance their career.
         Consider current market trends and their existing skill set.
-        Return only the skill names, one per line.`,
-      maxTokens: 100,
+        Return only the skill names, one per line.`
+        }
+      ],
+      max_tokens: 100,
     });
     
+    const text = completion.choices[0]?.message?.content || '';
     return text.split('\n').filter(skill => skill.trim()).slice(0, 5);
   },
 
   async generateBrutalReview(userProfile: any): Promise<string> {
-    const { text } = await generateText({
-      model: openai('gpt-4'),
-      prompt: `You are a brutally honest senior developer reviewing portfolios. 
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'user',
+          content: `You are a brutally honest senior developer reviewing portfolios. 
         Be harsh but constructive. Roast them based on their actual data.
         
         User Profile:
@@ -66,17 +82,22 @@ export const aiService = {
         - GitHub commits: ${userProfile.githubCommits || 'Not specified'}
         - Years of experience: ${userProfile.yearsExperience || 'Not specified'}
         
-        Generate a brutally honest but helpful review. Be specific and use their actual data.`,
+        Generate a brutally honest but helpful review. Be specific and use their actual data.`
+        }
+      ],
       temperature: 0.9,
-      maxTokens: 300,
+      max_tokens: 300,
     });
-    return text;
+    return completion.choices[0]?.message?.content || 'Your portfolio needs improvement. Focus on showcasing real projects and technical depth.';
   },
 
   async optimizeBlogPost(content: string): Promise<any> {
-    const { text } = await generateText({
-      model: openai('gpt-4'),
-      prompt: `Optimize this blog post for SEO and readability:
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'user',
+          content: `Optimize this blog post for SEO and readability:
         
         ${content}
         
@@ -84,10 +105,13 @@ export const aiService = {
         1. seoDescription (150-160 chars)
         2. tags (array of 5 relevant tags)
         3. readabilityImprovements (array of suggestions)
-        4. suggestedInternalLinks (array of 3-5 links)`,
-      maxTokens: 400,
+        4. suggestedInternalLinks (array of 3-5 links)`
+        }
+      ],
+      max_tokens: 400,
     });
     
+    const text = completion.choices[0]?.message?.content || '';
     try {
       return JSON.parse(text);
     } catch {

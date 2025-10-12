@@ -14,23 +14,24 @@ const starService = new StarService();
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string; starId: string } }
+  { params }: { params: Promise<{ id: string; starId: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // First verify the profile exists
-    await profileService.getProfileById(params.id);
+    await profileService.getProfileById(resolvedParams.id);
 
     // Verify the star exists and belongs to this profile
-    const star = await starService.getStarById(params.starId);
+    const star = await starService.getStarById(resolvedParams.starId);
 
-    if (star.profileId !== params.id) {
+    if (star.profileId !== resolvedParams.id) {
       return NextResponse.json(
         createErrorResponse("Star does not belong to this profile", 403),
         { status: 403 }
       );
     }
 
-    const result = await starService.deleteStar(params.starId);
+    const result = await starService.deleteStar(resolvedParams.starId);
 
     return NextResponse.json(
       createSuccessResponse(result, "Star removed successfully"),

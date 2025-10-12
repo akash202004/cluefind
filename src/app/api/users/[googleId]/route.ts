@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRepoByIdSchema } from "@/lib/validations/repo";
-import { updateRepoSchema } from "@/lib/validations/repo";
-import { RepoService } from "@/lib/services/repo.service";
+import {
+  getUserByGoogleIdSchema,
+  updateUserSchema,
+} from "@/lib/validations/user";
+import { UserService } from "@/lib/services/user.service";
 import { handleApiError } from "@/lib/errors";
 import {
   createSuccessResponse,
@@ -13,19 +15,21 @@ import {
   validateRequest,
 } from "@/lib/utils/request-helpers";
 
-const repoService = new RepoService();
+const userService = new UserService();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ googleId: string }> }
 ) {
   try {
     const resolvedParams = await params;
-    const validatedParams = validateParams(resolvedParams, getRepoByIdSchema);
-    const repo = await repoService.getRepoById(validatedParams.id);
+    const validatedParams = validateParams(resolvedParams, getUserByGoogleIdSchema);
+    const user = await userService.getUserByGoogleId(
+      validatedParams.googleId
+    );
 
     return NextResponse.json(
-      createSuccessResponse(repo, "Repository retrieved successfully"),
+      createSuccessResponse(user, "User retrieved successfully"),
       { status: 200 }
     );
   } catch (error) {
@@ -39,21 +43,21 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ googleId: string }> }
 ) {
   try {
     const resolvedParams = await params;
-    const validatedParams = validateParams(resolvedParams, getRepoByIdSchema);
+    const validatedParams = validateParams(resolvedParams, getUserByGoogleIdSchema);
     const body = await parseBody(request);
-    const validatedData = validateRequest(body, updateRepoSchema);
+    const validatedData = validateRequest(body, updateUserSchema);
 
-    const repo = await repoService.updateRepo(
-      validatedParams.id,
+    const user = await userService.updateUser(
+      validatedParams.googleId,
       validatedData
     );
 
     return NextResponse.json(
-      createSuccessResponse(repo, "Repository updated successfully"),
+      createSuccessResponse(user, "User updated successfully"),
       { status: 200 }
     );
   } catch (error) {
@@ -67,15 +71,15 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ googleId: string }> }
 ) {
   try {
     const resolvedParams = await params;
-    const validatedParams = validateParams(resolvedParams, getRepoByIdSchema);
-    const result = await repoService.deleteRepo(validatedParams.id);
+    const validatedParams = validateParams(resolvedParams, getUserByGoogleIdSchema);
+    const result = await userService.deleteUser(validatedParams.googleId);
 
     return NextResponse.json(
-      createSuccessResponse(result, "Repository deleted successfully"),
+      createSuccessResponse(result, "User deleted successfully"),
       { status: 200 }
     );
   } catch (error) {

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -18,42 +19,51 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
+    const getSession = async () => {
       try {
-        const response = await fetch("/api/auth/get-session", {
-          credentials: "include",
-        });
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (!response.ok) {
-          router.push("/signin");
+        if (error) {
+          console.error("Session error:", error);
+          router.push("/get-started");
           return;
         }
         
-        const data = await response.json();
-        if (!data.session) {
-          router.push("/signin");
+        if (!session) {
+          router.push("/get-started");
           return;
         }
         
-        setSession(data.session);
+        setSession(session);
       } catch (error) {
         console.error("Session error:", error);
-        router.push("/signin");
+        router.push("/get-started");
       } finally {
         setLoading(false);
       }
     };
 
-    checkSession();
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'SIGNED_OUT') {
+          router.push("/get-started");
+        } else if (session) {
+          setSession(session);
+        }
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, [router]);
 
   const handleSignOut = async () => {
     try {
-      await fetch("/api/auth/sign-out", {
-        method: "POST",
-        credentials: "include",
-      });
-      router.push("/signin");
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      router.push("/get-started");
     } catch (error) {
       console.error("Sign out error:", error);
     }
@@ -215,7 +225,7 @@ export default function DashboardPage() {
                   <div className="text-xs text-muted-foreground mb-1">
                     Vouched for <span className="font-bold text-accent">{vouch.skill}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">"{vouch.message}"</p>
+                  <p className="text-xs text-muted-foreground">&quot;{vouch.message}&quot;</p>
                 </div>
               ))}
             </div>

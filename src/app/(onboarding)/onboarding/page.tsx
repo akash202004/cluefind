@@ -1,26 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, User, FileText, Github, ArrowRight, Check } from "lucide-react";
-import { useOnboarding } from "../layout";
+import ImageUpload from "@/components/forms/ImageUpload";
+import ClientOnly from "@/components/ui/ClientOnly";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface OnboardingData {
   profileImage: string | null;
   username: string;
   resumeContent: string;
-  githubUsername: string;
+  githubId: string;
 }
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { currentStep, setCurrentStep } = useOnboarding();
+  const { session, loading: authLoading, hasProfile } = useAuth();
+  const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     profileImage: null,
     username: "",
     resumeContent: "",
-    githubUsername: "",
+    githubId: "",
   });
+  const [loading, setLoading] = useState(false);
+
+  // Check authentication and profile status
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (!session) {
+      router.push("/get-started");
+      return;
+    }
+
+    if (hasProfile === true) {
+      router.push("/dashboard");
+      return;
+    }
+  }, [session, hasProfile, authLoading, router]);
 
   const handleNext = () => {
     if (currentStep < 4) {
@@ -38,23 +58,52 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = async () => {
+    setLoading(true);
     try {
-      // Send onboarding data to API
+      if (!session?.user?.id) {
+        throw new Error("No authenticated user");
+      }
+
+      // Validate required fields
+      if (!onboardingData.profileImage || !onboardingData.username || !onboardingData.resumeContent || !onboardingData.githubId) {
+        throw new Error("All fields are required");
+      }
+
+      // Extract skills from resume (simple extraction)
+      const skills = extractSkillsFromResume(onboardingData.resumeContent);
+
+      // Create user and profile in Prisma database
       const response = await fetch("/api/onboarding/complete", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(onboardingData),
+        body: JSON.stringify({
+          profileImage: onboardingData.profileImage,
+          username: onboardingData.username,
+          resumeContent: onboardingData.resumeContent,
+          githubId: onboardingData.githubId,
+          skills: skills,
+          googleId: session.user.id,
+          email: session.user.email!,
+          name: session.user.user_metadata?.full_name || onboardingData.username,
+        }),
       });
 
-      if (response.ok) {
-        router.push("/dashboard");
-      } else {
-        console.error("Failed to complete onboarding");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to complete onboarding");
       }
-    } catch (error) {
+
+      const result = await response.json();
+      console.log("Onboarding completed:", result);
+
+      router.push("/dashboard");
+    } catch (error: any) {
       console.error("Error completing onboarding:", error);
+      alert(`Failed to complete onboarding: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,94 +123,136 @@ export default function OnboardingPage() {
       case 3:
         return onboardingData.resumeContent.length > 0;
       case 4:
-        return onboardingData.githubUsername.length > 0;
+        return onboardingData.githubId.length > 0;
       default:
         return false;
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
+
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Step Indicator */}
-      <div className="text-center mb-8">
-        <h1 className="text-section mb-2">Welcome to DevSync!</h1>
-        <p className="text-subtitle">
-          Let's set up your developer portfolio in just a few steps
-        </p>
-      </div>
-
-      {/* Step Content */}
-      <div className="card-brutalist mb-8">
-        {currentStep === 1 && (
-          <ProfileImageStep 
-            data={onboardingData.profileImage}
-            onUpdate={(value) => updateData("profileImage", value)}
-          />
-        )}
-        
-        {currentStep === 2 && (
-          <UsernameStep 
-            data={onboardingData.username}
-            onUpdate={(value) => updateData("username", value)}
-          />
-        )}
-        
-        {currentStep === 3 && (
-          <ResumeStep 
-            data={onboardingData.resumeContent}
-            onUpdate={(value) => updateData("resumeContent", value)}
-          />
-        )}
-        
-        {currentStep === 4 && (
-          <GitHubStep 
-            data={onboardingData.githubUsername}
-            onUpdate={(value) => updateData("githubUsername", value)}
-          />
-        )}
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={handlePrevious}
-          disabled={currentStep === 1}
-          className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-
-        <div className="flex items-center space-x-2">
-          {[1, 2, 3, 4].map((step) => (
-            <div
-              key={step}
-              className={`w-3 h-3 rounded-full border-2 ${
-                step === currentStep
-                  ? "bg-accent border-accent"
-                  : step < currentStep
-                  ? "bg-feature-green border-feature-green"
-                  : "bg-muted border-primary"
-              }`}
-            />
-          ))}
+    <ClientOnly>
+      <div className="max-w-2xl mx-auto">
+        {/* Step Indicator */}
+        <div className="text-center mb-8">
+          <h1 className="text-section mb-2">Welcome to DevSync!</h1>
+          <p className="text-subtitle">
+            Let&apos;s set up your developer portfolio in just a few steps
+          </p>
         </div>
 
-        <button
-          onClick={handleNext}
-          disabled={!isStepComplete(currentStep)}
-          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {currentStep === 4 ? "Complete Setup" : "Next"}
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </button>
+        {/* Step Content */}
+        <div className="card-brutalist mb-8">
+          {currentStep === 1 && (
+            <ProfileImageStep 
+              data={onboardingData.profileImage}
+              onUpdate={(value) => updateData("profileImage", value)}
+            />
+          )}
+          
+          {currentStep === 2 && (
+            <UsernameStep 
+              data={onboardingData.username}
+              onUpdate={(value) => updateData("username", value)}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <ResumeStep 
+              data={onboardingData.resumeContent}
+              onUpdate={(value) => updateData("resumeContent", value)}
+            />
+          )}
+
+          {currentStep === 4 && (
+            <GitHubStep 
+              data={onboardingData.githubId}
+              onUpdate={(value) => updateData("githubId", value)}
+            />
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex items-center justify-between">
+          <button
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+
+          <div className="flex items-center space-x-2">
+            {[1, 2, 3, 4].map((step) => (
+              <div
+                key={step}
+                className={`w-3 h-3 rounded-full border-2 ${
+                  step === currentStep
+                    ? "bg-accent border-accent"
+                    : step < currentStep
+                    ? "bg-feature-green border-feature-green"
+                    : "bg-muted border-primary"
+                }`}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={handleNext}
+            disabled={!isStepComplete(currentStep)}
+            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {currentStep === 4 ? "Complete Setup" : "Next"}
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </button>
+        </div>
       </div>
-    </div>
+    </ClientOnly>
   );
+}
+
+// Helper function to extract skills from resume
+function extractSkillsFromResume(resumeContent: string): string[] {
+  const commonSkills = [
+    'JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js', 'Python', 'Java', 'C++', 'C#',
+    'HTML', 'CSS', 'Tailwind CSS', 'Bootstrap', 'SASS', 'SCSS', 'SQL', 'PostgreSQL', 'MySQL',
+    'MongoDB', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Git', 'GitHub',
+    'GitLab', 'CI/CD', 'REST API', 'GraphQL', 'Microservices', 'Agile', 'Scrum', 'DevOps',
+    'Linux', 'Windows', 'macOS', 'Vue.js', 'Angular', 'Express.js', 'FastAPI', 'Django',
+    'Flask', 'Spring Boot', 'Laravel', 'Symfony', 'Ruby on Rails', 'Go', 'Rust', 'Swift',
+    'Kotlin', 'PHP', 'Ruby', 'Scala', 'Elixir', 'Clojure', 'Haskell', 'F#', 'OCaml'
+  ];
+
+  const skills: string[] = [];
+  const content = resumeContent.toLowerCase();
+
+  for (const skill of commonSkills) {
+    if (content.includes(skill.toLowerCase())) {
+      skills.push(skill);
+    }
+  }
+
+  return skills.slice(0, 10); // Limit to 10 skills
 }
 
 // Step 1: Profile Image Upload
 function ProfileImageStep({ data, onUpdate }: { data: string | null; onUpdate: (value: string) => void }) {
   const [isUploading, setIsUploading] = useState(false);
+  const { session } = useAuth();
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -169,20 +260,47 @@ function ProfileImageStep({ data, onUpdate }: { data: string | null; onUpdate: (
 
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch("/api/onboarding/upload-image", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const { imageUrl } = await response.json();
-        onUpdate(imageUrl);
+      if (!session?.user?.id) {
+        throw new Error("No authenticated user");
       }
-    } catch (error) {
-      console.error("Error uploading image:", error);
+
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("File must be an image (JPEG, PNG, WebP, or GIF)");
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Image must be less than 5MB");
+      }
+
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `onboarding-${session.user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `profile-image/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('profile-image')
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: false
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('profile-image')
+        .getPublicUrl(filePath);
+
+      onUpdate(urlData.publicUrl);
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      alert(`Failed to upload image: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -340,131 +458,60 @@ function UsernameStep({ data, onUpdate }: { data: string; onUpdate: (value: stri
   );
 }
 
-// Step 3: Resume Upload
+// Step 3: Resume Content
 function ResumeStep({ data, onUpdate }: { data: string; onUpdate: (value: string) => void }) {
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("resume", file);
-
-      const response = await fetch("/api/onboarding/upload-resume", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (response.ok) {
-        const { content } = await response.json();
-        onUpdate(content);
-      }
-    } catch (error) {
-      console.error("Error uploading resume:", error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   return (
-    <div className="text-center">
-      <div className="icon-box-green mx-auto mb-6">
-        <FileText className="w-8 h-8 text-primary" />
+    <div>
+      <div className="text-center mb-6">
+        <div className="icon-box-yellow mx-auto mb-4">
+          <FileText className="w-8 h-8 text-primary" />
+        </div>
+        
+        <h2 className="text-xl font-black uppercase tracking-wide mb-4">
+          Paste Your Resume
+        </h2>
+        
+        <p className="text-body mb-6">
+          Copy and paste your resume content to showcase your experience
+        </p>
       </div>
-      
-      <h2 className="text-xl font-black uppercase tracking-wide mb-4">
-        Upload Your Resume
-      </h2>
-      
-      <p className="text-body mb-6">
-        Upload your resume PDF to automatically extract your skills and experience
-      </p>
 
       <div className="space-y-4">
         <div>
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleResumeUpload}
-            disabled={isUploading}
-            className="hidden"
-            id="resume-upload"
-          />
-          <label
-            htmlFor="resume-upload"
-            className="btn-outline cursor-pointer disabled:opacity-50"
-          >
-            {isUploading ? "Processing..." : "Upload Resume PDF"}
+          <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+            Resume Content
           </label>
-        </div>
-
-        {data && (
-          <div className="text-left">
-            <h3 className="font-bold uppercase tracking-wide mb-2">Extracted Content:</h3>
-            <div className="bg-muted border-4 border-primary rounded-lg p-4 max-h-40 overflow-y-auto">
-              <p className="text-sm text-muted-foreground">{data}</p>
-            </div>
+          <textarea
+            value={data}
+            onChange={(e) => onUpdate(e.target.value)}
+            placeholder="Paste your resume here..."
+            rows={10}
+            className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 resize-none"
+          />
+          <div className="mt-2 text-sm text-muted-foreground">
+            {data.length} characters
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
 }
 
-// Step 4: GitHub Integration
+// Step 4: GitHub ID
 function GitHubStep({ data, onUpdate }: { data: string; onUpdate: (value: string) => void }) {
-  const [isFetching, setIsFetching] = useState(false);
-  const [githubData, setGithubData] = useState<any>(null);
-
-  const fetchGitHubData = async (username: string) => {
-    if (username.length < 1) {
-      setGithubData(null);
-      return;
-    }
-
-    setIsFetching(true);
-    try {
-      const response = await fetch("/api/onboarding/github-data", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setGithubData(data);
-      }
-    } catch (error) {
-      console.error("Error fetching GitHub data:", error);
-    } finally {
-      setIsFetching(false);
-    }
-  };
-
-  const handleGitHubChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    onUpdate(value);
-    fetchGitHubData(value);
-  };
-
   return (
     <div>
       <div className="text-center mb-6">
-        <div className="icon-box-yellow mx-auto mb-4">
+        <div className="icon-box-indigo mx-auto mb-4">
           <Github className="w-8 h-8 text-primary" />
         </div>
         
         <h2 className="text-xl font-black uppercase tracking-wide mb-4">
-          Connect GitHub
+          Connect Your GitHub
         </h2>
         
         <p className="text-body mb-6">
-          Link your GitHub profile to showcase your repositories and contributions
+          Enter your GitHub username to showcase your repositories
         </p>
       </div>
 
@@ -477,50 +524,27 @@ function GitHubStep({ data, onUpdate }: { data: string; onUpdate: (value: string
             <input
               type="text"
               value={data}
-              onChange={handleGitHubChange}
-              placeholder="your-github-username"
+              onChange={(e) => onUpdate(e.target.value)}
+              placeholder="yourusername"
               className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
-              style={{
-                fontFamily: "ui-monospace, SFMono-Regular, \"SF Mono\", Consolas, \"Liberation Mono\", Menlo, monospace",
-                fontWeight: "700",
-                fontSize: "16px"
-              }}
             />
-            {isFetching && (
-              <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
           </div>
-          
           {data && (
             <div className="mt-2 text-sm">
-              <span className="text-muted-foreground">GitHub Profile: </span>
-              <span className="font-bold text-accent">github.com/{data}</span>
+              <span className="text-muted-foreground">Your GitHub: </span>
+              <a 
+                href={`https://github.com/${data}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="font-bold text-accent hover:underline"
+              >
+                github.com/{data}
+              </a>
             </div>
           )}
         </div>
-
-        {githubData && (
-          <div className="bg-muted border-4 border-primary rounded-lg p-4">
-            <h3 className="font-bold uppercase tracking-wide mb-2">GitHub Profile Found:</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Repositories:</span>
-                <span className="font-bold">{githubData.public_repos}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Followers:</span>
-                <span className="font-bold">{githubData.followers}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Following:</span>
-                <span className="font-bold">{githubData.following}</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
 }
+

@@ -1,149 +1,110 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { aiService } from "@/lib/ai";
 
 export async function POST(request: NextRequest) {
   try {
-    const { profileImage, username, resumeContent, githubUsername } = await request.json();
-
-    if (!profileImage || !username || !resumeContent || !githubUsername) {
-      return NextResponse.json(
-        { error: "All onboarding data is required" },
-        { status: 400 }
-      );
-    }
-
-    // Fetch GitHub data
-    const githubResponse = await fetch(`https://api.github.com/users/${githubUsername}`, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'DevSync-App'
-      }
-    });
-
-    if (!githubResponse.ok) {
-      return NextResponse.json(
-        { error: "Invalid GitHub username" },
-        { status: 400 }
-      );
-    }
-
-    const githubData = await githubResponse.json();
-
-    // Generate AI profile content
-    const profileSummary = await aiService.generateProfileSummary({
-      resume: resumeContent,
-      github: githubData
-    });
-
-    // Extract skills from resume
-    const skills = extractSkillsFromResume(resumeContent);
-
-    // Create user profile
-    const user = await prisma.user.create({
-      data: {
-        username,
-        image: profileImage,
-        bio: profileSummary,
-        githubUrl: githubData.html_url,
-        name: githubData.name || username,
-        email: `temp-${username}@devsync.com`, // Temporary email
-        location: extractLocationFromResume(resumeContent),
-      }
-    });
-
-    // Create skills
-    await Promise.all(
-      skills.map(skill => 
-        prisma.skill.create({
-          data: {
-            name: skill,
-            category: categorizeSkill(skill),
-            level: "Intermediate", // Default level
-            yearsOfExperience: 1, // Default experience
-            userId: user.id
-          }
-        })
-      )
-    );
-
-    // Generate initial AI review
-    const aiReview = await aiService.generateBrutalReview({
+    const {
+      profileImage,
+      username,
+      resumeContent,
+      githubId,
       skills,
-      githubData,
-      resumeContent
+      googleId,
+      email,
+      name,
+    } = await request.json();
+
+    // Validate required fields
+    if (!profileImage || !username || !resumeContent || !githubId || !googleId || !email) {
+      return NextResponse.json(
+        { error: "All fields are required" },
+        { status: 400 }
+      );
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { googleId },
     });
 
-    await prisma.aIReview.create({
-      data: {
-        userId: user.id,
-        reviewType: "initial",
-        score: Math.floor(Math.random() * 3) + 7, // Random score 7-9
-        feedback: aiReview,
-        suggestions: [
-          "Add more detailed project descriptions",
-          "Include test coverage in your projects",
-          "Optimize your GitHub profile README"
-        ]
-      }
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User already exists" },
+        { status: 400 }
+      );
+    }
+
+    // Check if username is taken
+    const existingProfile = await prisma.profile.findUnique({
+      where: { username },
+    });
+
+    if (existingProfile) {
+      return NextResponse.json(
+        { error: "Username already taken" },
+        { status: 400 }
+      );
+    }
+
+    // Create user and profile in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create user
+      const user = await tx.user.create({
+        data: {
+          email,
+          name: name || username,
+          image: profileImage,
+          googleId,
+          onboardingComplete: true,
+        },
+      });
+
+      // Create profile
+      const profile = await tx.profile.create({
+        data: {
+          userId: user.id,
+          username,
+          bio: `Welcome to ${username}'s portfolio!`,
+          resumeContent,
+          githubId,
+          skills: skills || [],
+        },
+      });
+
+      return { user, profile };
     });
 
     return NextResponse.json({
       success: true,
-      userId: user.id,
-      username: user.username,
-      message: "Onboarding completed successfully"
+      userId: result.user.id,
+      profileId: result.profile.id,
+      username: result.profile.username,
+      message: "Onboarding completed successfully",
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error completing onboarding:", error);
+    
+    // Handle Prisma unique constraint errors
+    if (error.code === 'P2002') {
+      const field = error.meta?.target?.[0];
+      if (field === 'email') {
+        return NextResponse.json(
+          { error: "Email already registered" },
+          { status: 400 }
+        );
+      }
+      if (field === 'username') {
+        return NextResponse.json(
+          { error: "Username already taken" },
+          { status: 400 }
+        );
+      }
+    }
+
     return NextResponse.json(
       { error: "Failed to complete onboarding" },
       { status: 500 }
     );
   }
-}
-
-function extractSkillsFromResume(resumeContent: string): string[] {
-  const commonSkills = [
-    'React', 'Next.js', 'TypeScript', 'JavaScript', 'Node.js', 'Express',
-    'Python', 'Django', 'Flask', 'Java', 'Spring', 'C#', '.NET',
-    'PostgreSQL', 'MongoDB', 'MySQL', 'Redis', 'AWS', 'Docker',
-    'Kubernetes', 'Git', 'GraphQL', 'REST', 'HTML', 'CSS',
-    'Tailwind CSS', 'Bootstrap', 'SASS', 'Webpack', 'Vite'
-  ];
-
-  const extractedSkills: string[] = [];
-  
-  commonSkills.forEach(skill => {
-    if (resumeContent.toLowerCase().includes(skill.toLowerCase())) {
-      extractedSkills.push(skill);
-    }
-  });
-
-  return [...new Set(extractedSkills)];
-}
-
-function extractLocationFromResume(resumeContent: string): string | null {
-  // Simple location extraction
-  const locationMatch = resumeContent.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*,\s*[A-Z]{2})/);
-  return locationMatch ? locationMatch[0] : null;
-}
-
-function categorizeSkill(skill: string): string {
-  const categories: { [key: string]: string[] } = {
-    'Frontend': ['React', 'Next.js', 'TypeScript', 'JavaScript', 'HTML', 'CSS', 'Tailwind CSS', 'Bootstrap', 'SASS'],
-    'Backend': ['Node.js', 'Express', 'Python', 'Django', 'Flask', 'Java', 'Spring', 'C#', '.NET'],
-    'Database': ['PostgreSQL', 'MongoDB', 'MySQL', 'Redis'],
-    'DevOps': ['AWS', 'Docker', 'Kubernetes'],
-    'Tools': ['Git', 'Webpack', 'Vite']
-  };
-
-  for (const [category, skills] of Object.entries(categories)) {
-    if (skills.includes(skill)) {
-      return category;
-    }
-  }
-
-  return 'Other';
 }

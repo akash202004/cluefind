@@ -5,14 +5,19 @@ export const createRepoSchema = z.object({
   name: z.string().min(1, "Repository name is required"),
   description: z.string().optional(),
   url: z.string().url("Invalid repository URL"),
-  languages: z.array(z.string()).default([]),
+  languages: z.array(z.string()).min(1, "At least one language is required"),
   stars: z.number().int().min(0, "Stars must be non-negative"),
   fork: z.boolean().default(false),
 });
 
-export const updateRepoSchema = createRepoSchema
-  .partial()
-  .omit({ profileId: true });
+export const updateRepoSchema = z.object({
+  name: z.string().min(1, "Repository name is required").optional(),
+  description: z.string().optional(),
+  url: z.string().url("Invalid repository URL").optional(),
+  languages: z.array(z.string()).optional(),
+  stars: z.number().int().min(0, "Stars must be non-negative").optional(),
+  fork: z.boolean().optional(),
+});
 
 export const getRepoByIdSchema = z.object({
   id: z.string().cuid("Invalid repository ID"),

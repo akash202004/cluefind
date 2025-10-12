@@ -25,11 +25,12 @@ const starService = new StarService();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // First verify the profile exists
-    await profileService.getProfileById(params.id);
+    await profileService.getProfileById(resolvedParams.id);
 
     const { searchParams } = new URL(request.url);
     const { page, limit } = validateQuery(
@@ -37,7 +38,7 @@ export async function GET(
       getStarsByProfileSchema.omit({ profileId: true })
     );
 
-    const result = await starService.getStarsByProfile(params.id, page, limit);
+    const result = await starService.getStarsByProfile(resolvedParams.id, page, limit);
 
     return NextResponse.json(
       createPaginatedResponse(
@@ -58,11 +59,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     // First verify the profile exists
-    await profileService.getProfileById(params.id);
+    await profileService.getProfileById(resolvedParams.id);
 
     const body = await parseBody(request);
     const validatedData = validateRequest(
@@ -73,7 +75,7 @@ export async function POST(
     // Set the profileId from the URL params and get client info
     const starData = {
       ...validatedData,
-      profileId: params.id,
+      profileId: resolvedParams.id,
       ipHash: getClientIP(request),
       userAgent: getUserAgent(request),
     };

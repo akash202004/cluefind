@@ -22,14 +22,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if username exists
-    const existingUser = await prisma.user.findUnique({
+    const existingProfile = await prisma.profile.findUnique({
       where: {
         username: username
       }
     });
 
     return NextResponse.json({
-      available: !existingUser,
+      available: !existingProfile,
       username: username
     });
 

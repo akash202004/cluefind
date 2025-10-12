@@ -4,13 +4,13 @@ import { CreateUserInput, UpdateUserInput } from "@/lib/validations/user";
 export class UserService {
   async createUser(data: CreateUserInput) {
     try {
-      // Check if GitHub login already exists
+      // Check if Google ID already exists
       const existingUser = await prisma.user.findUnique({
-        where: { githubLogin: data.githubLogin },
+        where: { googleId: data.googleId },
       });
 
       if (existingUser) {
-        throw new Error("User with this GitHub login already exists");
+        throw new Error("User with this Google ID already exists");
       }
 
       const user = await prisma.user.create({
@@ -26,10 +26,10 @@ export class UserService {
     }
   }
 
-  async getUserByGithubLogin(githubLogin: string) {
+  async getUserByGoogleId(googleId: string) {
     try {
       const user = await prisma.user.findUnique({
-        where: { githubLogin },
+        where: { googleId },
         include: {
           profile: {
             include: {
@@ -88,10 +88,10 @@ export class UserService {
     }
   }
 
-  async updateUser(githubLogin: string, data: UpdateUserInput) {
+  async updateUser(googleId: string, data: UpdateUserInput) {
     try {
       const user = await prisma.user.update({
-        where: { githubLogin },
+        where: { googleId },
         data,
         include: {
           profile: true,
@@ -113,7 +113,7 @@ export class UserService {
             OR: [
               { name: { contains: search, mode: "insensitive" as const } },
               {
-                githubLogin: { contains: search, mode: "insensitive" as const },
+                email: { contains: search, mode: "insensitive" as const },
               },
             ],
           }
@@ -155,10 +155,10 @@ export class UserService {
     }
   }
 
-  async deleteUser(githubLogin: string) {
+  async deleteUser(googleId: string) {
     try {
       await prisma.user.delete({
-        where: { githubLogin },
+        where: { googleId },
       });
 
       return { message: "User deleted successfully" };
@@ -167,20 +167,20 @@ export class UserService {
     }
   }
 
-  async syncUserFromGitHub(githubLogin: string, githubData: any) {
+  async syncUserFromGoogle(googleId: string, googleData: any) {
     try {
       const user = await prisma.user.upsert({
-        where: { githubLogin },
+        where: { googleId },
         update: {
-          name: githubData.name || undefined,
-          email: githubData.email || undefined,
-          avatarUrl: githubData.avatar_url || undefined,
+          name: googleData.name || undefined,
+          email: googleData.email || undefined,
+          image: googleData.picture || undefined,
         },
         create: {
-          githubLogin,
-          name: githubData.name || undefined,
-          email: githubData.email || undefined,
-          avatarUrl: githubData.avatar_url || undefined,
+          googleId,
+          name: googleData.name || undefined,
+          email: googleData.email || undefined,
+          image: googleData.picture || undefined,
         },
         include: {
           profile: true,

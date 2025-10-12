@@ -121,7 +121,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-black uppercase mb-3">Skill Endorsements</h3>
               <p className="text-body">
-                Get verified endorsements from colleagues who've actually worked with you on real projects.
+                Get verified endorsements from colleagues who&apos;ve actually worked with you on real projects.
               </p>
             </div>
 

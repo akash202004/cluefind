@@ -12,10 +12,11 @@ const starService = new StarService();
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const validatedParams = validateParams(params, getStarByIdSchema);
+    const resolvedParams = await params;
+    const validatedParams = validateParams(resolvedParams, getStarByIdSchema);
     const star = await starService.getStarById(validatedParams.id);
 
     return NextResponse.json(
@@ -33,10 +34,11 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const validatedParams = validateParams(params, getStarByIdSchema);
+    const resolvedParams = await params;
+    const validatedParams = validateParams(resolvedParams, getStarByIdSchema);
     const result = await starService.deleteStar(validatedParams.id);
 
     return NextResponse.json(

@@ -135,7 +135,7 @@ export class ProfileService {
           },
           {
             user: {
-              githubLogin: { contains: search, mode: "insensitive" as const },
+              email: { contains: search, mode: "insensitive" as const },
             },
           },
         ];

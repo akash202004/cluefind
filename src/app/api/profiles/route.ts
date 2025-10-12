@@ -55,7 +55,13 @@ export async function POST(request: NextRequest) {
     const body = await parseBody(request);
     const validatedData = validateRequest(body, createProfileSchema);
 
-    const profile = await profileService.createProfile(validatedData);
+    // Ensure required fields have defaults
+    const profileData = {
+      ...validatedData,
+      skills: validatedData.skills ?? [],
+    };
+
+    const profile = await profileService.createProfile(profileData);
 
     return NextResponse.json(
       createSuccessResponse(profile, "Profile created successfully"),

@@ -98,13 +98,13 @@ const mockUser = {
 };
 
 interface PortfolioPageProps {
-  params: {
+  params: Promise<{
     username: string;
-  };
+  }>;
 }
 
-export default function PortfolioPage({ params }: PortfolioPageProps) {
-  const { username } = params;
+export default async function PortfolioPage({ params }: PortfolioPageProps) {
+  const { username } = await params;
   
   // In a real app, fetch user data from database
   if (username !== "johndoe") {
@@ -253,7 +253,7 @@ export default function PortfolioPage({ params }: PortfolioPageProps) {
                     </div>
                   </div>
                 </div>
-                <p className="text-body mb-3">"{vouch.message}"</p>
+                <p className="text-body mb-3">&quot;{vouch.message}&quot;</p>
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 bg-feature-blue text-primary-foreground text-sm font-bold uppercase tracking-wide rounded">
                     {vouch.skill}

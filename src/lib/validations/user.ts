@@ -1,16 +1,16 @@
 import { z } from "zod";
 
 export const createUserSchema = z.object({
-  githubLogin: z.string().min(1, "GitHub login is required"),
+  googleId: z.string().min(1, "Google ID is required"),
   name: z.string().min(1, "Name is required").optional(),
   email: z.string().email("Invalid email").optional(),
-  avatarUrl: z.string().url("Invalid avatar URL").optional(),
+  image: z.string().url("Invalid image URL").optional(),
 });
 
 export const updateUserSchema = createUserSchema.partial();
 
-export const getUserByGithubLoginSchema = z.object({
-  githubLogin: z.string().min(1, "GitHub login is required"),
+export const getUserByGoogleIdSchema = z.object({
+  googleId: z.string().min(1, "Google ID is required"),
 });
 
 export const getUserByIdSchema = z.object({
@@ -25,8 +25,8 @@ export const getUsersQuerySchema = z.object({
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-export type GetUserByGithubLoginInput = z.infer<
-  typeof getUserByGithubLoginSchema
+export type GetUserByGoogleIdInput = z.infer<
+  typeof getUserByGoogleIdSchema
 >;
 export type GetUserByIdInput = z.infer<typeof getUserByIdSchema>;
 export type GetUsersQueryInput = z.infer<typeof getUsersQuerySchema>;
