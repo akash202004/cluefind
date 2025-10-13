@@ -1,85 +1,84 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { createContext, useContext, useEffect, useState, useRef } from "react";
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  image?: string;
+  googleId: string;
+}
 
 interface AuthContextType {
-  session: Session | null;
+  user: User | null;
   loading: boolean;
   hasProfile: boolean | null;
   refreshProfile: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  session: null,
+  user: null,
   loading: true,
   hasProfile: null,
-  refreshProfile: async () => {}
+  refreshProfile: async () => {},
+  signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const profileCheckRef = useRef<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-      
-      // Check if user has a profile
-      if (session?.user?.id) {
-        checkProfile(session.user.id);
-      } else {
-        setHasProfile(false);
-        profileCheckRef.current = null;
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      
-      // Only check profile if this is a new user or if we don't have profile data yet
-      if (session?.user?.id && profileCheckRef.current !== session.user.id) {
-        checkProfile(session.user.id);
-      } else if (!session?.user?.id) {
-        setHasProfile(false);
-        profileCheckRef.current = null;
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    checkAuthStatus();
   }, []);
 
-  const checkProfile = async (userId: string) => {
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+
+        if (userData?.googleId) {
+          checkProfile(userData.googleId);
+        } else {
+          setHasProfile(false);
+        }
+      } else {
+        setUser(null);
+        setHasProfile(false);
+      }
+    } catch (error) {
+      console.error("Auth check error:", error);
+      setUser(null);
+      setHasProfile(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkProfile = async (googleId: string) => {
     // Prevent duplicate checks for the same user
-    if (profileCheckRef.current === userId) {
+    if (profileCheckRef.current === googleId) {
       return;
     }
-    
-    profileCheckRef.current = userId;
-    
-    try {
-      // First verify the user still exists in auth
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user || user.id !== userId) {
-        await supabase.auth.signOut();
-        setSession(null);
-        setHasProfile(false);
-        profileCheckRef.current = null;
-        return;
-      }
 
+    profileCheckRef.current = googleId;
+
+    try {
       // Check if user has completed onboarding in our Prisma database
-      const response = await fetch('/api/users/check-onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ googleId: user.id }),
+      const response = await fetch("/api/users/check-onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ googleId }),
       });
 
       if (!response.ok) {
@@ -89,21 +88,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const result = await response.json();
       setHasProfile(result.onboardingComplete);
     } catch (error) {
-      console.error('Profile check error:', error);
+      console.error("Profile check error:", error);
       setHasProfile(false);
     }
   };
 
   const refreshProfile = async () => {
-    if (session?.user?.id) {
+    if (user?.googleId) {
       // Reset the ref to force a fresh check
       profileCheckRef.current = null;
-      await checkProfile(session.user.id);
+      await checkProfile(user.googleId);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setUser(null);
+      setHasProfile(false);
+      profileCheckRef.current = null;
+    } catch (error) {
+      console.error("Sign out error:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ session, loading, hasProfile, refreshProfile }}>
+    <AuthContext.Provider
+      value={{ user, loading, hasProfile, refreshProfile, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

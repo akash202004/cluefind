@@ -16,6 +16,7 @@ model User {
   emailVerified       Boolean  @default(false)
   name                String?
   image               String?
+  bio                 String?
   googleId            String?  @unique
   onboardingComplete  Boolean  @default(false)
   createdAt           DateTime @default(now())

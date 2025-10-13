@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from 'react';
-import { Upload, X, Camera } from 'lucide-react';
+import { useState, useRef } from "react";
+import { Upload, X, Camera } from "lucide-react";
 
 interface ImageUploadProps {
   currentImage?: string;
@@ -9,26 +9,32 @@ interface ImageUploadProps {
   className?: string;
 }
 
-export default function ImageUpload({ currentImage, onImageChange, className = "" }: ImageUploadProps) {
+export default function ImageUpload({
+  currentImage,
+  onImageChange,
+  className = "",
+}: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      alert('Please select a valid image file (JPEG, PNG, WebP, or GIF)');
+      alert("Please select a valid image file (JPEG, PNG, WebP, or GIF)");
       return;
     }
 
     // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      alert('File size must be less than 5MB');
+      alert("File size must be less than 5MB");
       return;
     }
 
@@ -45,27 +51,28 @@ export default function ImageUpload({ currentImage, onImageChange, className = "
 
   const uploadFile = async (file: File) => {
     setUploading(true);
-    
+
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("image", file);
 
-      const response = await fetch('/api/upload/profile-image', {
-        method: 'POST',
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
+        throw new Error(data.error || "Upload failed");
       }
 
-      setPreview(data.url);
-      onImageChange(data.url);
+      setPreview(data.imageUrl);
+      onImageChange(data.imageUrl);
     } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload image. Please try again.');
+      console.error("Upload error:", error);
+      alert("Failed to upload image. Please try again.");
       setPreview(null);
     } finally {
       setUploading(false);
@@ -74,9 +81,9 @@ export default function ImageUpload({ currentImage, onImageChange, className = "
 
   const removeImage = () => {
     setPreview(null);
-    onImageChange('');
+    onImageChange("");
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -142,10 +149,9 @@ export default function ImageUpload({ currentImage, onImageChange, className = "
         {/* Upload Info */}
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            {uploading 
-              ? "Uploading your image..." 
-              : "Upload a profile picture (max 5MB)"
-            }
+            {uploading
+              ? "Uploading your image..."
+              : "Upload a profile picture (max 5MB)"}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
             Supports: JPEG, PNG, WebP, GIF

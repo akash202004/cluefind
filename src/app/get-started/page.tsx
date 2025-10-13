@@ -4,36 +4,36 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function GetStartedPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const { session } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (session) {
+    if (user) {
       router.push('/dashboard');
     }
-  }, [session, router]);
+  }, [user, router]);
 
   const handleGoogleSignIn = async () => {
     setError(null);
     setLoading(true);
     try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-      if (oauthError) throw oauthError;
+      const response = await fetch('/api/auth/google');
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      } else {
+        throw new Error('Failed to get auth URL');
+      }
     } catch (error: any) {
       setError(error.message);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

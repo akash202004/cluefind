@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,27 +15,34 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     // Validate required fields
-    if (!profileImage || !username || !resumeContent || !githubId || !googleId || !email) {
+    if (
+      !profileImage ||
+      !username ||
+      !resumeContent ||
+      !githubId ||
+      !googleId ||
+      !email
+    ) {
       return NextResponse.json(
         { error: "All fields are required" },
         { status: 400 }
       );
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    // Check if user exists
+    const existingUser = await db.user.findUnique({
       where: { googleId },
     });
 
-    if (existingUser) {
+    if (!existingUser) {
       return NextResponse.json(
-        { error: "User already exists" },
+        { error: "User not found. Please sign in again." },
         { status: 400 }
       );
     }
 
     // Check if username is taken
-    const existingProfile = await prisma.profile.findUnique({
+    const existingProfile = await db.profile.findUnique({
       where: { username },
     });
 
@@ -46,15 +53,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user and profile in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Create user
-      const user = await tx.user.create({
+    // Update user and create profile in a transaction
+    const result = await db.$transaction(async (tx) => {
+      // Update user
+      const user = await tx.user.update({
+        where: { googleId },
         data: {
-          email,
           name: name || username,
           image: profileImage,
-          googleId,
           onboardingComplete: true,
         },
       });
@@ -81,20 +87,19 @@ export async function POST(request: NextRequest) {
       username: result.profile.username,
       message: "Onboarding completed successfully",
     });
-
   } catch (error: any) {
     console.error("Error completing onboarding:", error);
-    
+
     // Handle Prisma unique constraint errors
-    if (error.code === 'P2002') {
+    if (error.code === "P2002") {
       const field = error.meta?.target?.[0];
-      if (field === 'email') {
+      if (field === "email") {
         return NextResponse.json(
           { error: "Email already registered" },
           { status: 400 }
         );
       }
-      if (field === 'username') {
+      if (field === "username") {
         return NextResponse.json(
           { error: "Username already taken" },
           { status: 400 }

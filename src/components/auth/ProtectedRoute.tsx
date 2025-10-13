@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,8 +10,12 @@ interface ProtectedRouteProps {
   requireProfile?: boolean;
 }
 
-const ProtectedRoute = ({ children, requireAuth, requireProfile = false }: ProtectedRouteProps) => {
-  const { session, loading: authLoading, hasProfile } = useAuth();
+const ProtectedRoute = ({
+  children,
+  requireAuth,
+  requireProfile = false,
+}: ProtectedRouteProps) => {
+  const { user, loading: authLoading, hasProfile } = useAuth();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
@@ -36,8 +40,8 @@ const ProtectedRoute = ({ children, requireAuth, requireProfile = false }: Prote
     );
   }
 
-  // If auth is required and there's no session, redirect to get started
-  if (requireAuth && !session) {
+  // If auth is required and there's no user, redirect to get started
+  if (requireAuth && !user) {
     router.push("/get-started");
     return null;
   }

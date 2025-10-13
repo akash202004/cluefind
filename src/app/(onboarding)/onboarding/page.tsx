@@ -2,10 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, User, FileText, Github, ArrowRight, Check } from "lucide-react";
+import {
+  Upload,
+  User,
+  FileText,
+  Github,
+  ArrowRight,
+  Check,
+} from "lucide-react";
 import ImageUpload from "@/components/forms/ImageUpload";
 import ClientOnly from "@/components/ui/ClientOnly";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface OnboardingData {
@@ -17,7 +23,7 @@ interface OnboardingData {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { session, loading: authLoading, hasProfile } = useAuth();
+  const { user, loading: authLoading, hasProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     profileImage: null,
@@ -31,7 +37,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (authLoading) return;
 
-    if (!session) {
+    if (!user) {
       router.push("/get-started");
       return;
     }
@@ -40,7 +46,7 @@ export default function OnboardingPage() {
       router.push("/dashboard");
       return;
     }
-  }, [session, hasProfile, authLoading, router]);
+  }, [user, hasProfile, authLoading, router]);
 
   const handleNext = () => {
     if (currentStep < 4) {
@@ -60,12 +66,17 @@ export default function OnboardingPage() {
   const handleComplete = async () => {
     setLoading(true);
     try {
-      if (!session?.user?.id) {
+      if (!user?.googleId) {
         throw new Error("No authenticated user");
       }
 
       // Validate required fields
-      if (!onboardingData.profileImage || !onboardingData.username || !onboardingData.resumeContent || !onboardingData.githubId) {
+      if (
+        !onboardingData.profileImage ||
+        !onboardingData.username ||
+        !onboardingData.resumeContent ||
+        !onboardingData.githubId
+      ) {
         throw new Error("All fields are required");
       }
 
@@ -84,9 +95,9 @@ export default function OnboardingPage() {
           resumeContent: onboardingData.resumeContent,
           githubId: onboardingData.githubId,
           skills: skills,
-          googleId: session.user.id,
-          email: session.user.email!,
-          name: session.user.user_metadata?.full_name || onboardingData.username,
+          googleId: user.googleId,
+          email: user.email!,
+          name: user.name || onboardingData.username,
         }),
       });
 
@@ -108,7 +119,7 @@ export default function OnboardingPage() {
   };
 
   const updateData = (field: keyof OnboardingData, value: string) => {
-    setOnboardingData(prev => ({
+    setOnboardingData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -140,7 +151,7 @@ export default function OnboardingPage() {
     );
   }
 
-  if (!session) {
+  if (!user) {
     return null;
   }
 
@@ -158,28 +169,28 @@ export default function OnboardingPage() {
         {/* Step Content */}
         <div className="card-brutalist mb-8">
           {currentStep === 1 && (
-            <ProfileImageStep 
+            <ProfileImageStep
               data={onboardingData.profileImage}
               onUpdate={(value) => updateData("profileImage", value)}
             />
           )}
-          
+
           {currentStep === 2 && (
-            <UsernameStep 
+            <UsernameStep
               data={onboardingData.username}
               onUpdate={(value) => updateData("username", value)}
             />
           )}
 
           {currentStep === 3 && (
-            <ResumeStep 
+            <ResumeStep
               data={onboardingData.resumeContent}
               onUpdate={(value) => updateData("resumeContent", value)}
             />
           )}
 
           {currentStep === 4 && (
-            <GitHubStep 
+            <GitHubStep
               data={onboardingData.githubId}
               onUpdate={(value) => updateData("githubId", value)}
             />
@@ -228,13 +239,66 @@ export default function OnboardingPage() {
 // Helper function to extract skills from resume
 function extractSkillsFromResume(resumeContent: string): string[] {
   const commonSkills = [
-    'JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js', 'Python', 'Java', 'C++', 'C#',
-    'HTML', 'CSS', 'Tailwind CSS', 'Bootstrap', 'SASS', 'SCSS', 'SQL', 'PostgreSQL', 'MySQL',
-    'MongoDB', 'Redis', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP', 'Git', 'GitHub',
-    'GitLab', 'CI/CD', 'REST API', 'GraphQL', 'Microservices', 'Agile', 'Scrum', 'DevOps',
-    'Linux', 'Windows', 'macOS', 'Vue.js', 'Angular', 'Express.js', 'FastAPI', 'Django',
-    'Flask', 'Spring Boot', 'Laravel', 'Symfony', 'Ruby on Rails', 'Go', 'Rust', 'Swift',
-    'Kotlin', 'PHP', 'Ruby', 'Scala', 'Elixir', 'Clojure', 'Haskell', 'F#', 'OCaml'
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Next.js",
+    "Node.js",
+    "Python",
+    "Java",
+    "C++",
+    "C#",
+    "HTML",
+    "CSS",
+    "Tailwind CSS",
+    "Bootstrap",
+    "SASS",
+    "SCSS",
+    "SQL",
+    "PostgreSQL",
+    "MySQL",
+    "MongoDB",
+    "Redis",
+    "Docker",
+    "Kubernetes",
+    "AWS",
+    "Azure",
+    "GCP",
+    "Git",
+    "GitHub",
+    "GitLab",
+    "CI/CD",
+    "REST API",
+    "GraphQL",
+    "Microservices",
+    "Agile",
+    "Scrum",
+    "DevOps",
+    "Linux",
+    "Windows",
+    "macOS",
+    "Vue.js",
+    "Angular",
+    "Express.js",
+    "FastAPI",
+    "Django",
+    "Flask",
+    "Spring Boot",
+    "Laravel",
+    "Symfony",
+    "Ruby on Rails",
+    "Go",
+    "Rust",
+    "Swift",
+    "Kotlin",
+    "PHP",
+    "Ruby",
+    "Scala",
+    "Elixir",
+    "Clojure",
+    "Haskell",
+    "F#",
+    "OCaml",
   ];
 
   const skills: string[] = [];
@@ -250,22 +314,35 @@ function extractSkillsFromResume(resumeContent: string): string[] {
 }
 
 // Step 1: Profile Image Upload
-function ProfileImageStep({ data, onUpdate }: { data: string | null; onUpdate: (value: string) => void }) {
+function ProfileImageStep({
+  data,
+  onUpdate,
+}: {
+  data: string | null;
+  onUpdate: (value: string) => void;
+}) {
   const [isUploading, setIsUploading] = useState(false);
-  const { session } = useAuth();
+  const { user } = useAuth();
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
     try {
-      if (!session?.user?.id) {
+      if (!user?.googleId) {
         throw new Error("No authenticated user");
       }
 
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+      ];
       if (!allowedTypes.includes(file.type)) {
         throw new Error("File must be an image (JPEG, PNG, WebP, or GIF)");
       }
@@ -276,28 +353,24 @@ function ProfileImageStep({ data, onUpdate }: { data: string | null; onUpdate: (
       }
 
       // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `onboarding-${session.user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `profile-image/${fileName}`;
+      const fileExt = file.name.split(".").pop();
+      // Upload using our new API
+      const formData = new FormData();
+      formData.append("image", file);
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('profile-image')
-        .upload(filePath, file, {
-          contentType: file.type,
-          upsert: false
-        });
+      const response = await fetch("/api/upload/image", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
 
-      if (error) {
-        throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Upload failed");
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('profile-image')
-        .getPublicUrl(filePath);
-
-      onUpdate(urlData.publicUrl);
+      onUpdate(data.imageUrl);
     } catch (error: any) {
       console.error("Upload error:", error);
       alert(`Failed to upload image: ${error.message}`);
@@ -311,11 +384,11 @@ function ProfileImageStep({ data, onUpdate }: { data: string | null; onUpdate: (
       <div className="icon-box-purple mx-auto mb-6">
         <Upload className="w-8 h-8 text-primary" />
       </div>
-      
+
       <h2 className="text-xl font-black uppercase tracking-wide mb-4">
         Upload Profile Picture
       </h2>
-      
+
       <p className="text-body mb-6">
         Add a professional profile picture to make your portfolio stand out
       </p>
@@ -323,9 +396,9 @@ function ProfileImageStep({ data, onUpdate }: { data: string | null; onUpdate: (
       <div className="space-y-4">
         {data ? (
           <div className="w-32 h-32 mx-auto border-4 border-primary rounded-lg overflow-hidden shadow-brutalist-lg">
-            <img 
-              src={data} 
-              alt="Profile" 
+            <img
+              src={data}
+              alt="Profile"
               className="w-full h-full object-cover"
             />
           </div>
@@ -357,7 +430,13 @@ function ProfileImageStep({ data, onUpdate }: { data: string | null; onUpdate: (
 }
 
 // Step 2: Username Setup
-function UsernameStep({ data, onUpdate }: { data: string; onUpdate: (value: string) => void }) {
+function UsernameStep({
+  data,
+  onUpdate,
+}: {
+  data: string;
+  onUpdate: (value: string) => void;
+}) {
   const [isChecking, setIsChecking] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
 
@@ -400,11 +479,11 @@ function UsernameStep({ data, onUpdate }: { data: string; onUpdate: (value: stri
         <div className="icon-box-blue mx-auto mb-4">
           <User className="w-8 h-8 text-primary" />
         </div>
-        
+
         <h2 className="text-xl font-black uppercase tracking-wide mb-4">
           Choose Your Username
         </h2>
-        
+
         <p className="text-body mb-6">
           This will be your unique URL: devsync.com/yourusername
         </p>
@@ -423,9 +502,10 @@ function UsernameStep({ data, onUpdate }: { data: string; onUpdate: (value: stri
               placeholder="yourusername"
               className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 pr-12"
               style={{
-                fontFamily: "ui-monospace, SFMono-Regular, \"SF Mono\", Consolas, \"Liberation Mono\", Menlo, monospace",
+                fontFamily:
+                  'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
                 fontWeight: "700",
-                fontSize: "16px"
+                fontSize: "16px",
               }}
             />
             {isChecking && (
@@ -439,14 +519,16 @@ function UsernameStep({ data, onUpdate }: { data: string; onUpdate: (value: stri
               </div>
             )}
           </div>
-          
+
           {data && (
             <div className="mt-2 text-sm">
-              <span className="text-muted-foreground">Your profile will be: </span>
+              <span className="text-muted-foreground">
+                Your profile will be:{" "}
+              </span>
               <span className="font-bold text-accent">devsync.com/{data}</span>
             </div>
           )}
-          
+
           {isAvailable === false && (
             <div className="mt-2 text-sm text-feature-red font-bold">
               Username is already taken
@@ -459,18 +541,24 @@ function UsernameStep({ data, onUpdate }: { data: string; onUpdate: (value: stri
 }
 
 // Step 3: Resume Content
-function ResumeStep({ data, onUpdate }: { data: string; onUpdate: (value: string) => void }) {
+function ResumeStep({
+  data,
+  onUpdate,
+}: {
+  data: string;
+  onUpdate: (value: string) => void;
+}) {
   return (
     <div>
       <div className="text-center mb-6">
         <div className="icon-box-yellow mx-auto mb-4">
           <FileText className="w-8 h-8 text-primary" />
         </div>
-        
+
         <h2 className="text-xl font-black uppercase tracking-wide mb-4">
           Paste Your Resume
         </h2>
-        
+
         <p className="text-body mb-6">
           Copy and paste your resume content to showcase your experience
         </p>
@@ -498,18 +586,24 @@ function ResumeStep({ data, onUpdate }: { data: string; onUpdate: (value: string
 }
 
 // Step 4: GitHub ID
-function GitHubStep({ data, onUpdate }: { data: string; onUpdate: (value: string) => void }) {
+function GitHubStep({
+  data,
+  onUpdate,
+}: {
+  data: string;
+  onUpdate: (value: string) => void;
+}) {
   return (
     <div>
       <div className="text-center mb-6">
         <div className="icon-box-indigo mx-auto mb-4">
           <Github className="w-8 h-8 text-primary" />
         </div>
-        
+
         <h2 className="text-xl font-black uppercase tracking-wide mb-4">
           Connect Your GitHub
         </h2>
-        
+
         <p className="text-body mb-6">
           Enter your GitHub username to showcase your repositories
         </p>
@@ -532,9 +626,9 @@ function GitHubStep({ data, onUpdate }: { data: string; onUpdate: (value: string
           {data && (
             <div className="mt-2 text-sm">
               <span className="text-muted-foreground">Your GitHub: </span>
-              <a 
-                href={`https://github.com/${data}`} 
-                target="_blank" 
+              <a
+                href={`https://github.com/${data}`}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold text-accent hover:underline"
               >
@@ -547,4 +641,3 @@ function GitHubStep({ data, onUpdate }: { data: string; onUpdate: (value: string
     </div>
   );
 }
-
