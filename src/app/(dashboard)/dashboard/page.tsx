@@ -747,6 +747,21 @@ function InlineEditProfile() {
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
 
+  useEffect(() => {
+    const load = async () => {
+      if (!user?.googleId) return;
+      try {
+        const resp = await fetch(`/api/users/${user.googleId}`);
+        const json = await resp.json();
+        if (resp.ok) {
+          setBio(json.data.bio || "");
+          setImageUrl(json.data.image || undefined);
+        }
+      } catch (_) {}
+    };
+    load();
+  }, [user?.googleId]);
+
   const handleUpload = async (file: File) => {
     const form = new FormData();
     form.append("image", file);
