@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Trophy, Star, TrendingUp, Github, Linkedin, ArrowLeft } from "lucide-react";
+import { Trophy, Heart, TrendingUp, Github, Linkedin, ArrowLeft } from "lucide-react";
 
 // Mock data - will be replaced with real data from database
 const leaderboardData = [
@@ -178,7 +178,7 @@ export default function LeaderboardPage() {
                 <div className="flex items-center gap-2">
                   <div className="stat-box bg-primary text-primary-foreground">
                     <div className="flex items-center gap-2">
-                      <Star className="w-6 h-6 fill-accent text-accent" />
+                      <Heart className="w-6 h-6 fill-accent text-accent" />
                       <span className="text-2xl font-black">{dev.vouches.toLocaleString()}</span>
                     </div>
                     <div className="text-xs uppercase tracking-wide opacity-80 mt-1">Vouches</div>

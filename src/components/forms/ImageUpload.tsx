@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Upload, X, Camera } from "lucide-react";
 
 interface ImageUploadProps {
@@ -106,9 +107,11 @@ export default function ImageUpload({
         {/* Image Preview */}
         {preview && (
           <div className="relative group">
-            <img
+            <Image
               src={preview}
               alt="Profile preview"
+              width={128}
+              height={128}
               className="w-32 h-32 rounded-full object-cover border-4 border-primary shadow-brutalist-lg"
             />
             {!uploading && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 
 interface User {
   id: string;
@@ -32,11 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const profileCheckRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     try {
       const response = await fetch("/api/auth/me", {
         method: "GET",
@@ -63,7 +59,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const checkProfile = async (googleId: string) => {
     // Prevent duplicate checks for the same user

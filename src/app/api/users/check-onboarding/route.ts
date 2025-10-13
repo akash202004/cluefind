@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { UserService } from "@/lib/services/user.service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,38 +12,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user exists in our Prisma database
-    const user = await db.user.findUnique({
-      where: { googleId },
-      select: {
-        id: true,
-        onboardingComplete: true,
-        profile: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
+    // Check onboarding status using service
+    const userService = new UserService();
+    const result = await userService.checkOnboardingStatus(googleId);
 
-    if (!user) {
-      // New user, needs onboarding
-      return NextResponse.json({
-        onboardingComplete: false,
-        isNewUser: true,
-      });
-    }
-
-    // Check if user has a profile (additional check)
-    const hasProfile = !!user.profile;
-
-    return NextResponse.json({
-      onboardingComplete: user.onboardingComplete && hasProfile,
-      isNewUser: false,
-      userId: user.id,
-      hasProfile: hasProfile,
-    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error checking onboarding status:", error);
     return NextResponse.json(

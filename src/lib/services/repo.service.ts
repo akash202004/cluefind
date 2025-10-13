@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { CreateRepoInput, UpdateRepoInput } from "@/lib/validations/repo";
 
 export class RepoService {
   async createRepo(data: CreateRepoInput) {
     try {
-      const repo = await prisma.repo.create({
+      const repo = await db.repo.create({
         data,
         include: {
           profile: {
@@ -23,7 +23,7 @@ export class RepoService {
 
   async getRepoById(id: string) {
     try {
-      const repo = await prisma.repo.findUnique({
+      const repo = await db.repo.findUnique({
         where: { id },
         include: {
           profile: {
@@ -49,13 +49,13 @@ export class RepoService {
       const skip = (page - 1) * limit;
 
       const [repos, total] = await Promise.all([
-        prisma.repo.findMany({
+        db.repo.findMany({
           where: { profileId },
           skip,
           take: limit,
-          orderBy: { stars: "desc" },
+          orderBy: { createdAt: "desc" },
         }),
-        prisma.repo.count({ where: { profileId } }),
+        db.repo.count({ where: { profileId } }),
       ]);
 
       return {
@@ -76,8 +76,7 @@ export class RepoService {
     page = 1,
     limit = 10,
     search = "",
-    language?: string,
-    minStars?: number
+    language?: string
   ) {
     try {
       const skip = (page - 1) * limit;
@@ -97,14 +96,9 @@ export class RepoService {
         };
       }
 
-      if (minStars !== undefined) {
-        where.stars = {
-          gte: minStars,
-        };
-      }
 
       const [repos, total] = await Promise.all([
-        prisma.repo.findMany({
+        db.repo.findMany({
           where,
           skip,
           take: limit,
@@ -115,9 +109,9 @@ export class RepoService {
               },
             },
           },
-          orderBy: { stars: "desc" },
+          orderBy: { createdAt: "desc" },
         }),
-        prisma.repo.count({ where }),
+        db.repo.count({ where }),
       ]);
 
       return {
@@ -136,7 +130,7 @@ export class RepoService {
 
   async updateRepo(id: string, data: UpdateRepoInput) {
     try {
-      const repo = await prisma.repo.update({
+      const repo = await db.repo.update({
         where: { id },
         data,
         include: {
@@ -156,7 +150,7 @@ export class RepoService {
 
   async deleteRepo(id: string) {
     try {
-      await prisma.repo.delete({
+      await db.repo.delete({
         where: { id },
       });
 
@@ -169,7 +163,7 @@ export class RepoService {
   async syncRepos(profileId: string, repos: any[]) {
     try {
       // Delete existing repos for this profile
-      await prisma.repo.deleteMany({
+      await db.repo.deleteMany({
         where: { profileId },
       });
 
@@ -180,11 +174,10 @@ export class RepoService {
         description: repo.description || null,
         url: repo.html_url,
         languages: repo.languages || [],
-        stars: repo.stargazers_count || 0,
         fork: repo.fork || false,
       }));
 
-      const createdRepos = await prisma.repo.createMany({
+      const createdRepos = await db.repo.createMany({
         data: reposData,
       });
 
@@ -196,7 +189,7 @@ export class RepoService {
 
   async getTopLanguages() {
     try {
-      const repos = await prisma.repo.findMany({
+      const repos = await db.repo.findMany({
         select: {
           languages: true,
         },

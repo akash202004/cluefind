@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
       name: repo.name,
       description: repo.description,
       language: repo.language,
-      stars: repo.stargazers_count,
       forks: repo.forks_count,
       updated: repo.updated_at,
       url: repo.html_url,
@@ -92,7 +91,6 @@ export async function POST(request: NextRequest) {
       topLanguages,
       stats: {
         totalRepos: profileData.public_repos,
-        totalStars: repositories.reduce((sum: number, repo: any) => sum + repo.stargazers_count, 0),
         totalForks: repositories.reduce((sum: number, repo: any) => sum + repo.forks_count, 0),
         accountAge: Math.floor((Date.now() - new Date(profileData.created_at).getTime()) / (1000 * 60 * 60 * 24 * 365))
       }

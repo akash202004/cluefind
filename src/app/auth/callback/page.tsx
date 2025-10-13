@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ClientOnly from "@/components/ui/ClientOnly";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -87,4 +87,21 @@ export default function AuthCallbackPage() {
   }
 
   return null;
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <ClientOnly>
+        <div className="min-h-screen bg-background dot-grid-bg flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </ClientOnly>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
+  );
 }

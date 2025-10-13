@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { UserService } from "@/lib/services/user.service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,55 +29,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user exists
-    const existingUser = await db.user.findUnique({
-      where: { googleId },
-    });
-
-    if (!existingUser) {
-      return NextResponse.json(
-        { error: "User not found. Please sign in again." },
-        { status: 400 }
-      );
-    }
-
-    // Check if username is taken
-    const existingProfile = await db.profile.findUnique({
-      where: { username },
-    });
-
-    if (existingProfile) {
-      return NextResponse.json(
-        { error: "Username already taken" },
-        { status: 400 }
-      );
-    }
-
-    // Update user and create profile in a transaction
-    const result = await db.$transaction(async (tx) => {
-      // Update user
-      const user = await tx.user.update({
-        where: { googleId },
-        data: {
-          name: name || username,
-          image: profileImage,
-          onboardingComplete: true,
-        },
-      });
-
-      // Create profile
-      const profile = await tx.profile.create({
-        data: {
-          userId: user.id,
-          username,
-          bio: `Welcome to ${username}'s portfolio!`,
-          resumeContent,
-          githubId,
-          skills: skills || [],
-        },
-      });
-
-      return { user, profile };
+    // Complete onboarding using service
+    const userService = new UserService();
+    const result = await userService.completeOnboarding(googleId, {
+      profileImage,
+      username,
+      resumeContent,
+      githubId,
+      skills: skills || [],
+      name: name || username,
     });
 
     return NextResponse.json({

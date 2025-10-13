@@ -82,7 +82,6 @@ export interface ProjectMetrics {
   performance?: string;
   impact?: string;
   downloads?: number;
-  stars?: number;
 }
 
 // Endorsement Types

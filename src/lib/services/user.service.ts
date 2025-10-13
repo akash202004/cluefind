@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { CreateUserInput, UpdateUserInput } from "@/lib/validations/user";
 
 export class UserService {
   async createUser(data: CreateUserInput) {
     try {
       // Check if Google ID already exists
-      const existingUser = await prisma.user.findUnique({
+      const existingUser = await db.user.findUnique({
         where: { googleId: data.googleId },
       });
 
@@ -13,7 +13,7 @@ export class UserService {
         throw new Error("User with this Google ID already exists");
       }
 
-      const user = await prisma.user.create({
+      const user = await db.user.create({
         data,
         include: {
           profile: true,
@@ -28,17 +28,17 @@ export class UserService {
 
   async getUserByGoogleId(googleId: string) {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await db.user.findUnique({
         where: { googleId },
         include: {
           profile: {
             include: {
               repos: {
-                orderBy: { stars: "desc" },
+                orderBy: { createdAt: "desc" },
               },
               _count: {
                 select: {
-                  stars: true,
+                  vouches: true,
                   repos: true,
                 },
               },
@@ -59,17 +59,17 @@ export class UserService {
 
   async getUserById(id: string) {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await db.user.findUnique({
         where: { id },
         include: {
           profile: {
             include: {
               repos: {
-                orderBy: { stars: "desc" },
+                orderBy: { createdAt: "desc" },
               },
               _count: {
                 select: {
-                  stars: true,
+                  vouches: true,
                   repos: true,
                 },
               },
@@ -90,7 +90,7 @@ export class UserService {
 
   async updateUser(googleId: string, data: UpdateUserInput) {
     try {
-      const user = await prisma.user.update({
+      const user = await db.user.update({
         where: { googleId },
         data,
         include: {
@@ -120,7 +120,7 @@ export class UserService {
         : {};
 
       const [users, total] = await Promise.all([
-        prisma.user.findMany({
+        db.user.findMany({
           where,
           skip,
           take: limit,
@@ -129,7 +129,7 @@ export class UserService {
               include: {
                 _count: {
                   select: {
-                    stars: true,
+                    vouches: true,
                     repos: true,
                   },
                 },
@@ -138,7 +138,7 @@ export class UserService {
           },
           orderBy: { createdAt: "desc" },
         }),
-        prisma.user.count({ where }),
+        db.user.count({ where }),
       ]);
 
       return {
@@ -157,7 +157,7 @@ export class UserService {
 
   async deleteUser(googleId: string) {
     try {
-      await prisma.user.delete({
+      await db.user.delete({
         where: { googleId },
       });
 
@@ -169,17 +169,22 @@ export class UserService {
 
   async syncUserFromGoogle(googleId: string, googleData: any) {
     try {
-      const user = await prisma.user.upsert({
+      // Ensure email is always provided (required by schema)
+      if (!googleData.email) {
+        throw new Error("Email is required for user creation");
+      }
+
+      const user = await db.user.upsert({
         where: { googleId },
         update: {
           name: googleData.name || undefined,
-          email: googleData.email || undefined,
+          email: googleData.email,
           image: googleData.picture || undefined,
         },
         create: {
           googleId,
           name: googleData.name || undefined,
-          email: googleData.email || undefined,
+          email: googleData.email,
           image: googleData.picture || undefined,
         },
         include: {
@@ -188,6 +193,118 @@ export class UserService {
       });
 
       return user;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async checkOnboardingStatus(googleId: string) {
+    try {
+      const user = await db.user.findUnique({
+        where: { googleId },
+        select: {
+          id: true,
+          onboardingComplete: true,
+          profile: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
+        },
+      });
+
+      if (!user) {
+        return {
+          onboardingComplete: false,
+          isNewUser: true,
+        };
+      }
+
+      const hasProfile = !!user.profile;
+
+      return {
+        onboardingComplete: user.onboardingComplete && hasProfile,
+        isNewUser: false,
+        userId: user.id,
+        hasProfile: hasProfile,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateUserImage(userId: string, imageUrl: string) {
+    try {
+      const updatedUser = await db.user.update({
+        where: { id: userId },
+        data: { image: imageUrl },
+      });
+
+      return updatedUser;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async completeOnboarding(
+    googleId: string,
+    onboardingData: {
+      profileImage: string;
+      username: string;
+      resumeContent: string;
+      githubId: string;
+      skills?: string[];
+      name?: string;
+    }
+  ) {
+    try {
+      // Check if user exists
+      const existingUser = await db.user.findUnique({
+        where: { googleId },
+      });
+
+      if (!existingUser) {
+        throw new Error("User not found. Please sign in again.");
+      }
+
+      // Check if username is taken
+      const existingProfile = await db.profile.findUnique({
+        where: { username: onboardingData.username },
+      });
+
+      if (existingProfile) {
+        throw new Error("Username already taken");
+      }
+
+      // Update user and create profile in a transaction
+      const result = await db.$transaction(async (tx) => {
+        // Update user
+        const user = await tx.user.update({
+          where: { googleId },
+          data: {
+            name: onboardingData.name || onboardingData.username,
+            image: onboardingData.profileImage,
+            onboardingComplete: true,
+          },
+        });
+
+        // Create profile
+        const profile = await tx.profile.create({
+          data: {
+            userId: user.id,
+            username: onboardingData.username,
+            bio: `Welcome to ${onboardingData.username}'s portfolio!`,
+            resumeContent: onboardingData.resumeContent,
+            githubId: onboardingData.githubId,
+            skills: onboardingData.skills || [],
+          },
+        });
+
+        return { user, profile };
+      });
+
+      return result;
     } catch (error) {
       throw error;
     }

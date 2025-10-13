@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyGoogleToken, getGoogleTokens } from '@/lib/google-auth';
-import { db } from '@/lib/db';
+import { UserService } from '@/lib/services/user.service';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,37 +27,17 @@ export async function GET(request: NextRequest) {
     // Verify the ID token
     const userInfo = await verifyGoogleToken(tokens.id_token);
 
-    // Check if user exists in database
-    let user = await db.user.findUnique({
-      where: { googleId: userInfo.id }
+    // Sync user with Google data using service
+    const userService = new UserService();
+    const user = await userService.syncUserFromGoogle(userInfo.id, {
+      name: userInfo.name,
+      email: userInfo.email,
+      picture: userInfo.picture,
+      verified_email: userInfo.verified_email,
     });
 
-    if (!user) {
-      // Create new user
-      user = await db.user.create({
-        data: {
-          googleId: userInfo.id,
-          email: userInfo.email,
-          name: userInfo.name,
-          image: userInfo.picture,
-          emailVerified: userInfo.verified_email,
-        }
-      });
-    } else {
-      // Update existing user info
-      user = await db.user.update({
-        where: { googleId: userInfo.id },
-        data: {
-          email: userInfo.email,
-          name: userInfo.name,
-          image: userInfo.picture,
-          emailVerified: userInfo.verified_email,
-        }
-      });
-    }
-
     // Set session cookie
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set('session', JSON.stringify({
       userId: user.id,
       googleId: user.googleId,

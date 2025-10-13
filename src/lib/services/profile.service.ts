@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import {
   CreateProfileInput,
   UpdateProfileInput,
@@ -8,7 +8,7 @@ export class ProfileService {
   async createProfile(data: CreateProfileInput) {
     try {
       // Check if profile already exists for user
-      const existingProfile = await prisma.profile.findUnique({
+      const existingProfile = await db.profile.findUnique({
         where: { userId: data.userId },
       });
 
@@ -16,14 +16,14 @@ export class ProfileService {
         throw new Error("Profile already exists for this user");
       }
 
-      const profile = await prisma.profile.create({
+      const profile = await db.profile.create({
         data,
         include: {
           user: true,
           repos: true,
           _count: {
             select: {
-              stars: true,
+              vouches: true,
             },
           },
         },
@@ -37,20 +37,20 @@ export class ProfileService {
 
   async getProfileById(id: string) {
     try {
-      const profile = await prisma.profile.findUnique({
+      const profile = await db.profile.findUnique({
         where: { id },
         include: {
           user: true,
           repos: {
-            orderBy: { stars: "desc" },
+            orderBy: { createdAt: "desc" },
           },
-          stars: {
+          vouches: {
             orderBy: { createdAt: "desc" },
             take: 10,
           },
           _count: {
             select: {
-              stars: true,
+              vouches: true,
               repos: true,
             },
           },
@@ -69,20 +69,20 @@ export class ProfileService {
 
   async getProfileByUserId(userId: string) {
     try {
-      const profile = await prisma.profile.findUnique({
+      const profile = await db.profile.findUnique({
         where: { userId },
         include: {
           user: true,
           repos: {
-            orderBy: { stars: "desc" },
+            orderBy: { createdAt: "desc" },
           },
-          stars: {
+          vouches: {
             orderBy: { createdAt: "desc" },
             take: 10,
           },
           _count: {
             select: {
-              stars: true,
+              vouches: true,
               repos: true,
             },
           },
@@ -101,7 +101,7 @@ export class ProfileService {
 
   async updateProfile(id: string, data: UpdateProfileInput) {
     try {
-      const profile = await prisma.profile.update({
+      const profile = await db.profile.update({
         where: { id },
         data,
         include: {
@@ -109,7 +109,7 @@ export class ProfileService {
           repos: true,
           _count: {
             select: {
-              stars: true,
+              vouches: true,
             },
           },
         },
@@ -149,7 +149,7 @@ export class ProfileService {
       }
 
       const [profiles, total] = await Promise.all([
-        prisma.profile.findMany({
+        db.profile.findMany({
           where,
           skip,
           take: limit,
@@ -157,14 +157,14 @@ export class ProfileService {
             user: true,
             _count: {
               select: {
-                stars: true,
+                vouches: true,
                 repos: true,
               },
             },
           },
-          orderBy: { startCount: "desc" },
+          orderBy: { createdAt: "desc" },
         }),
-        prisma.profile.count({ where }),
+        db.profile.count({ where }),
       ]);
 
       return {
@@ -181,31 +181,21 @@ export class ProfileService {
     }
   }
 
-  async incrementStarCount(profileId: string) {
+  async incrementVouchCount(profileId: string) {
     try {
-      await prisma.profile.update({
-        where: { id: profileId },
-        data: {
-          startCount: {
-            increment: 1,
-          },
-        },
-      });
+      // This would be handled by the VouchService when creating vouches
+      // No direct field update needed as vouches are counted via relations
+      return { message: "Vouch count incremented" };
     } catch (error) {
       throw error;
     }
   }
 
-  async decrementStarCount(profileId: string) {
+  async decrementVouchCount(profileId: string) {
     try {
-      await prisma.profile.update({
-        where: { id: profileId },
-        data: {
-          startCount: {
-            decrement: 1,
-          },
-        },
-      });
+      // This would be handled by the VouchService when deleting vouches
+      // No direct field update needed as vouches are counted via relations
+      return { message: "Vouch count decremented" };
     } catch (error) {
       throw error;
     }
@@ -213,7 +203,7 @@ export class ProfileService {
 
   async syncProfile(profileId: string, lastSyncedAt: Date) {
     try {
-      await prisma.profile.update({
+      await db.profile.update({
         where: { id: profileId },
         data: { lastSyncedAt },
       });
@@ -224,11 +214,33 @@ export class ProfileService {
 
   async deleteProfile(id: string) {
     try {
-      await prisma.profile.delete({
+      await db.profile.delete({
         where: { id },
       });
 
       return { message: "Profile deleted successfully" };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async checkUsernameAvailability(username: string) {
+    try {
+      // Validate username format
+      const usernameRegex = /^[a-z0-9_-]{3,20}$/;
+      if (!usernameRegex.test(username)) {
+        throw new Error("Username must be 3-20 characters, lowercase letters, numbers, hyphens, and underscores only");
+      }
+
+      // Check if username exists
+      const existingProfile = await db.profile.findUnique({
+        where: { username },
+      });
+
+      return {
+        available: !existingProfile,
+        username: username,
+      };
     } catch (error) {
       throw error;
     }

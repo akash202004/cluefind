@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Upload,
   User,
@@ -396,9 +397,11 @@ function ProfileImageStep({
       <div className="space-y-4">
         {data ? (
           <div className="w-32 h-32 mx-auto border-4 border-primary rounded-lg overflow-hidden shadow-brutalist-lg">
-            <img
+            <Image
               src={data}
               alt="Profile"
+              width={128}
+              height={128}
               className="w-full h-full object-cover"
             />
           </div>

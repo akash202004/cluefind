@@ -6,7 +6,6 @@ export const createRepoSchema = z.object({
   description: z.string().optional(),
   url: z.string().url("Invalid repository URL"),
   languages: z.array(z.string()).min(1, "At least one language is required"),
-  stars: z.number().int().min(0, "Stars must be non-negative"),
   fork: z.boolean().default(false),
 });
 
@@ -15,7 +14,6 @@ export const updateRepoSchema = z.object({
   description: z.string().optional(),
   url: z.string().url("Invalid repository URL").optional(),
   languages: z.array(z.string()).optional(),
-  stars: z.number().int().min(0, "Stars must be non-negative").optional(),
   fork: z.boolean().optional(),
 });
 
@@ -34,7 +32,6 @@ export const getReposQuerySchema = z.object({
   limit: z.coerce.number().default(10),
   search: z.string().default(""),
   language: z.string().optional(),
-  minStars: z.coerce.number().optional(),
 });
 
 export type CreateRepoInput = z.infer<typeof createRepoSchema>;

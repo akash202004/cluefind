@@ -51,7 +51,6 @@ model Repo {
   description String?
   url         String
   languages   String[]
-  stars       Int
   fork        Boolean @default(false)
   createdAt   DateTime @default(now())
 

@@ -13,7 +13,7 @@ const repoService = new RepoService();
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const { page, limit, search, language, minStars } = validateQuery(
+    const { page, limit, search, language } = validateQuery(
       searchParams,
       getReposQuerySchema
     );
@@ -22,8 +22,7 @@ export async function GET(request: NextRequest) {
       page,
       limit,
       search,
-      language,
-      minStars
+      language
     );
 
     return NextResponse.json(

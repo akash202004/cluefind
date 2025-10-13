@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { ProfileService } from "@/lib/services/profile.service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,26 +12,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate username format
-    const usernameRegex = /^[a-z0-9_-]{3,20}$/;
-    if (!usernameRegex.test(username)) {
-      return NextResponse.json(
-        { error: "Username must be 3-20 characters, lowercase letters, numbers, hyphens, and underscores only" },
-        { status: 400 }
-      );
-    }
+    // Check username availability using service
+    const profileService = new ProfileService();
+    const result = await profileService.checkUsernameAvailability(username);
 
-    // Check if username exists
-    const existingProfile = await prisma.profile.findUnique({
-      where: {
-        username: username
-      }
-    });
-
-    return NextResponse.json({
-      available: !existingProfile,
-      username: username
-    });
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error("Error checking username:", error);

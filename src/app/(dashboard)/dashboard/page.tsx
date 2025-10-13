@@ -124,21 +124,18 @@ export default function DashboardPage() {
                 description:
                   "Modern developer portfolio platform with AI features",
                 tech: ["Next.js", "TypeScript", "Prisma", "Tailwind"],
-                stars: 23,
                 language: "TypeScript",
               },
               {
                 title: "task-manager",
                 description: "Collaborative task management tool",
                 tech: ["React", "Node.js", "MongoDB"],
-                stars: 15,
                 language: "JavaScript",
               },
               {
                 title: "weather-app",
                 description: "Real-time weather dashboard",
                 tech: ["Vue.js", "Express", "Chart.js"],
-                stars: 8,
                 language: "JavaScript",
               },
             ].map((repo, index) => (
@@ -169,9 +166,6 @@ export default function DashboardPage() {
                     <span className="text-sm text-muted-foreground">
                       {repo.language}
                     </span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-sm font-bold">{repo.stars}</span>
-                    </div>
                   </div>
                 </div>
 
