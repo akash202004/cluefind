@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import ClientOnly from "@/components/ui/ClientOnly";
 
 export default function AuthCallbackPage() {
@@ -16,52 +15,28 @@ export default function AuthCallbackPage() {
       try {
         // Handle OAuth code exchange
         const code = searchParams.get('code');
+        const error = searchParams.get('error');
         
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          
-          if (exchangeError) {
-            console.error('Code exchange error:', exchangeError);
-            setError('Authentication failed');
-            return;
-          }
-        }
-
-        // Get session after code exchange
-        const { data, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Session error:', sessionError);
+        if (error) {
+          console.error('OAuth error:', error);
           setError('Authentication failed');
           return;
         }
-
-        if (data.session) {
-          // Check if user has completed onboarding in our database
-          try {
-            const response = await fetch('/api/users/check-onboarding', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ googleId: data.session.user.id }),
-            });
-
-            const result = await response.json();
-
-            if (result.onboardingComplete) {
-              // User has completed onboarding, redirect to dashboard
-              router.push('/dashboard');
-            } else {
-              // User needs to complete onboarding
-              router.push('/onboarding');
-            }
-          } catch (err) {
-            console.error('Error checking onboarding:', err);
-            // If check fails, assume new user needs onboarding
-            router.push('/onboarding');
+        
+        if (code) {
+          // Call our API route to handle the OAuth callback
+          const response = await fetch(`/api/auth/callback?code=${code}`);
+          
+          if (response.ok) {
+            // The API route will handle the redirect
+            // This page should not be reached in normal flow
+            router.push('/dashboard');
+          } else {
+            const errorData = await response.json();
+            setError(errorData.error || 'Authentication failed');
           }
         } else {
-          // No session, redirect back to get started
-          router.push('/get-started');
+          setError('No authorization code received');
         }
       } catch (err) {
         console.error('Error handling auth callback:', err);

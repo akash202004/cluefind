@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists in our Prisma database
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { googleId },
       select: {
         id: true,
@@ -22,16 +22,16 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             username: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     if (!user) {
       // New user, needs onboarding
       return NextResponse.json({
         onboardingComplete: false,
-        isNewUser: true
+        isNewUser: true,
       });
     }
 
@@ -42,9 +42,8 @@ export async function POST(request: NextRequest) {
       onboardingComplete: user.onboardingComplete && hasProfile,
       isNewUser: false,
       userId: user.id,
-      hasProfile: hasProfile
+      hasProfile: hasProfile,
     });
-
   } catch (error) {
     console.error("Error checking onboarding status:", error);
     return NextResponse.json(
@@ -53,6 +52,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
-
