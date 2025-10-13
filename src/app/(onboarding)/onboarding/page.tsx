@@ -24,7 +24,7 @@ interface OnboardingData {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, loading: authLoading, hasProfile } = useAuth();
+  const { user, loading: authLoading, hasProfile, refreshProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     profileImage: null,
@@ -110,6 +110,13 @@ export default function OnboardingPage() {
       const result = await response.json();
       console.log("Onboarding completed:", result);
 
+      // Refresh the profile status to update hasProfile
+      await refreshProfile();
+
+      // Add a small delay to ensure the database transaction is complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Navigate to dashboard
       router.push("/dashboard");
     } catch (error: any) {
       console.error("Error completing onboarding:", error);

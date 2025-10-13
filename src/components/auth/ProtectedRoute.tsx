@@ -20,12 +20,7 @@ const ProtectedRoute = ({
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (authLoading) {
-      setIsReady(false);
-    } else {
-      // Add a small delay to prevent rapid state changes
-      setTimeout(() => setIsReady(true), 100);
-    }
+    setIsReady(!authLoading);
   }, [authLoading]);
 
   // Don't render anything until we're ready
@@ -50,6 +45,18 @@ const ProtectedRoute = ({
   if (requireProfile && hasProfile === false) {
     router.push("/onboarding");
     return null;
+  }
+
+  // If profile is required but we're still checking, show loading
+  if (requireProfile && hasProfile === null) {
+    return (
+      <div className="min-h-screen bg-background dot-grid-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking profile status...</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
