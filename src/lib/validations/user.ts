@@ -4,10 +4,24 @@ export const createUserSchema = z.object({
   googleId: z.string().min(1, "Google ID is required"),
   name: z.string().min(1, "Name is required").optional(),
   email: z.string().email("Invalid email"),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must be less than 20 characters"),
   image: z.string().url("Invalid image URL").optional(),
 });
 
-export const updateUserSchema = createUserSchema.partial();
+export const updateUserSchema = z.object({
+  name: z.string().min(1, "Name is required").optional(),
+  email: z.string().email("Invalid email").optional(),
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must be less than 20 characters")
+    .optional(),
+  image: z.string().url("Invalid image URL").optional(),
+  bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
+});
 
 export const getUserByGoogleIdSchema = z.object({
   googleId: z.string().min(1, "Google ID is required"),

@@ -15,6 +15,7 @@ model User {
   email               String   @unique
   emailVerified       Boolean  @default(false)
   name                String?
+  username            String   @unique
   image               String?
   bio                 String?
   googleId            String?  @unique
@@ -29,8 +30,6 @@ model User {
 model Profile {
   id            String   @id @default(cuid())
   userId        String   @unique
-  username      String   @unique
-  bio           String?
   skills        String[] @default([])
   resumeContent String?
   githubId      String?

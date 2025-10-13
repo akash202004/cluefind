@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ProfileService } from "@/lib/services/profile.service";
+import { UserService } from "@/lib/services/user.service";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,11 +13,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check username availability using service
-    const profileService = new ProfileService();
-    const result = await profileService.checkUsernameAvailability(username);
+    const userService = new UserService();
+    const result = await userService.checkUsernameAvailability(username);
 
     return NextResponse.json(result);
-
   } catch (error) {
     console.error("Error checking username:", error);
     return NextResponse.json(

@@ -174,18 +174,30 @@ export class UserService {
         throw new Error("Email is required for user creation");
       }
 
+      // Generate username from email if not provided
+      const username =
+        googleData.username ||
+        googleData.email
+          .split("@")[0]
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]/g, "");
+
       const user = await db.user.upsert({
         where: { googleId },
         update: {
           name: googleData.name || undefined,
           email: googleData.email,
+          username: username,
           image: googleData.picture || undefined,
+          emailVerified: googleData.verified_email || false,
         },
         create: {
           googleId,
           name: googleData.name || undefined,
           email: googleData.email,
+          username: username,
           image: googleData.picture || undefined,
+          emailVerified: googleData.verified_email || false,
         },
         include: {
           profile: true,
@@ -268,33 +280,36 @@ export class UserService {
         throw new Error("User not found. Please sign in again.");
       }
 
-      // Check if username is taken
-      const existingProfile = await db.profile.findUnique({
+      // Check if username is taken by another user
+      const existingUserWithUsername = await db.user.findUnique({
         where: { username: onboardingData.username },
       });
 
-      if (existingProfile) {
+      if (
+        existingUserWithUsername &&
+        existingUserWithUsername.id !== existingUser.id
+      ) {
         throw new Error("Username already taken");
       }
 
       // Update user and create profile in a transaction
       const result = await db.$transaction(async (tx) => {
-        // Update user
+        // Update user with username and bio
         const user = await tx.user.update({
           where: { googleId },
           data: {
             name: onboardingData.name || onboardingData.username,
+            username: onboardingData.username,
             image: onboardingData.profileImage,
+            bio: `Welcome to ${onboardingData.username}'s portfolio!`,
             onboardingComplete: true,
           },
         });
 
-        // Create profile
+        // Create profile without username and bio
         const profile = await tx.profile.create({
           data: {
             userId: user.id,
-            username: onboardingData.username,
-            bio: `Welcome to ${onboardingData.username}'s portfolio!`,
             resumeContent: onboardingData.resumeContent,
             githubId: onboardingData.githubId,
             skills: onboardingData.skills || [],
@@ -305,6 +320,30 @@ export class UserService {
       });
 
       return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async checkUsernameAvailability(username: string) {
+    try {
+      // Validate username format
+      const usernameRegex = /^[a-z0-9_-]{3,20}$/;
+      if (!usernameRegex.test(username)) {
+        throw new Error(
+          "Username must be 3-20 characters, lowercase letters, numbers, hyphens, and underscores only"
+        );
+      }
+
+      // Check if username exists
+      const existingUser = await db.user.findUnique({
+        where: { username },
+      });
+
+      return {
+        available: !existingUser,
+        username: username,
+      };
     } catch (error) {
       throw error;
     }

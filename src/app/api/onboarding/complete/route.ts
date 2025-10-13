@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       success: true,
       userId: result.user.id,
       profileId: result.profile.id,
-      username: result.profile.username,
+      username: result.user.username,
       message: "Onboarding completed successfully",
     });
   } catch (error: any) {

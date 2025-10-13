@@ -129,13 +129,17 @@ export class ProfileService {
 
       if (search) {
         where.OR = [
-          { bio: { contains: search, mode: "insensitive" as const } },
           {
             user: { name: { contains: search, mode: "insensitive" as const } },
           },
           {
             user: {
               email: { contains: search, mode: "insensitive" as const },
+            },
+          },
+          {
+            user: {
+              username: { contains: search, mode: "insensitive" as const },
             },
           },
         ];
@@ -219,28 +223,6 @@ export class ProfileService {
       });
 
       return { message: "Profile deleted successfully" };
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async checkUsernameAvailability(username: string) {
-    try {
-      // Validate username format
-      const usernameRegex = /^[a-z0-9_-]{3,20}$/;
-      if (!usernameRegex.test(username)) {
-        throw new Error("Username must be 3-20 characters, lowercase letters, numbers, hyphens, and underscores only");
-      }
-
-      // Check if username exists
-      const existingProfile = await db.profile.findUnique({
-        where: { username },
-      });
-
-      return {
-        available: !existingProfile,
-        username: username,
-      };
     } catch (error) {
       throw error;
     }
