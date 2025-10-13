@@ -83,3 +83,5 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 - Session cookies automatically managed by Supabase client
 - Middleware refreshes session on each request
 
+
+

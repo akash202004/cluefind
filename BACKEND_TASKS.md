@@ -109,3 +109,4 @@ Frontend (Next.js 15)
 - Redirect to dashboard
 
 That's it! Keep it simple and focused on the core functionality.
+
