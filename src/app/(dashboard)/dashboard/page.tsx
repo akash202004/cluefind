@@ -54,6 +54,25 @@ export default function DashboardPage() {
     return json.data.profile.id;
   };
 
+  // Load existing profile data for parent-managed fields
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+      try {
+        const profileId = await resolveProfileId();
+        const resp = await fetch(`/api/profiles/${profileId}`);
+        const json = await resp.json();
+        if (!resp.ok) throw new Error(json.error || "Failed to load profile");
+        setResumeContent(json.data.resumeContent || "");
+        setGithubId(json.data.githubId || "");
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const handleSaveResume = async () => {
     if (!resumeContent.trim()) return;
     setSubmitting(true);
@@ -325,6 +344,20 @@ function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<str
   const [newSkill, setNewSkill] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const profileId = await resolveProfileId();
+        const resp = await fetch(`/api/profiles/${profileId}`);
+        const json = await resp.json();
+        if (resp.ok) {
+          setSkills(json.data.skills || []);
+        }
+      } catch (_) {}
+    };
+    load();
+  }, [resolveProfileId]);
+
   const addSkill = () => {
     if (newSkill.trim() && !skills.includes(newSkill.trim())) {
       setSkills([...skills, newSkill.trim()]);
@@ -421,6 +454,20 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
   const [projects, setProjects] = useState<Array<{title: string, description: string, url: string}>>([]);
   const [newProject, setNewProject] = useState({title: "", description: "", url: ""});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const profileId = await resolveProfileId();
+        const resp = await fetch(`/api/profiles/${profileId}`);
+        const json = await resp.json();
+        if (resp.ok && Array.isArray(json.data.projects)) {
+          setProjects(json.data.projects);
+        }
+      } catch (_) {}
+    };
+    load();
+  }, [resolveProfileId]);
 
   const addProject = () => {
     if (newProject.title.trim() && newProject.description.trim()) {
@@ -546,6 +593,20 @@ function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promis
   const [links, setLinks] = useState<Array<{platform: string, url: string}>>([]);
   const [newLink, setNewLink] = useState({platform: "", url: ""});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const profileId = await resolveProfileId();
+        const resp = await fetch(`/api/profiles/${profileId}`);
+        const json = await resp.json();
+        if (resp.ok && Array.isArray(json.data.socialLinks)) {
+          setLinks(json.data.socialLinks);
+        }
+      } catch (_) {}
+    };
+    load();
+  }, [resolveProfileId]);
 
   const platforms = ["LinkedIn", "Twitter", "Instagram", "Portfolio", "Blog", "Other"];
 
