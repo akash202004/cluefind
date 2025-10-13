@@ -3,12 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import {
-  Upload,
-  User,
-  ArrowRight,
-  Check,
-} from "lucide-react";
+import { Upload, User, ArrowRight, Check } from "lucide-react";
+import toast from "react-hot-toast";
 import ImageUpload from "@/components/forms/ImageUpload";
 import ClientOnly from "@/components/ui/ClientOnly";
 import { useAuth } from "@/contexts/AuthContext";
@@ -109,7 +105,7 @@ export default function OnboardingPage() {
       router.push("/dashboard");
     } catch (error: any) {
       console.error("Error completing onboarding:", error);
-      alert(`Failed to complete onboarding: ${error.message}`);
+      toast.error(error.message || "Failed to complete onboarding");
     } finally {
       setLoading(false);
     }
@@ -364,7 +360,7 @@ function ProfileImageStep({
       onUpdate(data.imageUrl);
     } catch (error: any) {
       console.error("Upload error:", error);
-      alert(`Failed to upload image: ${error.message}`);
+      toast.error(error.message || "Image upload failed");
     } finally {
       setIsUploading(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -86,9 +87,9 @@ export default function DashboardPage() {
       });
       const saveData = await saveResp.json();
       if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
-      alert("Resume content saved.");
+      toast.success("Resume content saved");
     } catch (err: any) {
-      alert(err.message || "Failed to save resume");
+      toast.error(err.message || "Failed to save resume");
     } finally {
       setSubmitting(false);
     }
@@ -106,9 +107,9 @@ export default function DashboardPage() {
       });
       const saveData = await saveResp.json();
       if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
-      alert("GitHub username saved.");
+      toast.success("GitHub username saved");
     } catch (err: any) {
-      alert(err.message || "Failed to save GitHub");
+      toast.error(err.message || "Failed to save GitHub");
     } finally {
       setSubmitting(false);
     }
@@ -383,9 +384,9 @@ function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<str
       });
       const saveData = await saveResp.json();
       if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
-      alert("Skills saved successfully.");
+      toast.success("Skills saved");
     } catch (err: any) {
-      alert(err.message || "Failed to save skills");
+      toast.error(err.message || "Failed to save skills");
     } finally {
       setSubmitting(false);
     }
@@ -494,9 +495,9 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
       });
       const saveData = await saveResp.json();
       if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
-      alert("Projects saved successfully.");
+      toast.success("Projects saved");
     } catch (err: any) {
-      alert(err.message || "Failed to save projects");
+      toast.error(err.message || "Failed to save projects");
     } finally {
       setSubmitting(false);
     }
@@ -635,9 +636,9 @@ function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promis
       });
       const saveData = await saveResp.json();
       if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
-      alert("Social links saved successfully.");
+      toast.success("Social links saved");
     } catch (err: any) {
-      alert(err.message || "Failed to save social links");
+      toast.error(err.message || "Failed to save social links");
     } finally {
       setSubmitting(false);
     }
@@ -767,9 +768,9 @@ function InlineEditProfile() {
       });
       const json = await resp.json();
       if (!resp.ok) throw new Error(json.error || "Save failed");
-      alert("Profile updated");
+      toast.success("Profile updated");
     } catch (e: any) {
-      alert(e.message || "Failed to save");
+      toast.error(e.message || "Failed to save");
     } finally {
       setSaving(false);
     }

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { User, Save, Upload } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -19,6 +20,7 @@ export default function EditProfilePage() {
     const json = await resp.json();
     if (!resp.ok) throw new Error(json.error || "Upload failed");
     setImageUrl(json.imageUrl);
+    toast.success("Image uploaded");
   };
 
   const handleSave = async () => {
@@ -32,9 +34,9 @@ export default function EditProfilePage() {
       });
       const json = await resp.json();
       if (!resp.ok) throw new Error(json.error || "Save failed");
-      alert("Profile updated");
+      toast.success("Profile updated");
     } catch (e: any) {
-      alert(e.message || "Failed to save");
+      toast.error(e.message || "Failed to save");
     } finally {
       setSaving(false);
     }
