@@ -19,7 +19,7 @@ export const updateUserSchema = z.object({
     .min(3, "Username must be at least 3 characters")
     .max(20, "Username must be less than 20 characters")
     .optional(),
-  image: z.string().url("Invalid image URL").optional(),
+  image: z.string().url("Invalid image URL").optional().nullable(),
   bio: z.string().max(500, "Bio must be less than 500 characters").optional(),
 });
 

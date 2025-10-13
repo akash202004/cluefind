@@ -1,6 +1,44 @@
-import { User, MapPin, Calendar, Github, Linkedin, Mail, Save, Upload } from "lucide-react";
+"use client";
+import { useState } from "react";
+import { User, Save, Upload } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function EditProfilePage() {
+  const { user } = useAuth();
+  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [bio, setBio] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+
+  const handleUpload = async (file: File) => {
+    const form = new FormData();
+    form.append("image", file);
+    if (user?.id) form.append("userId", user.id);
+    const resp = await fetch("/api/upload/profile-image", { method: "POST", body: form });
+    const json = await resp.json();
+    if (!resp.ok) throw new Error(json.error || "Upload failed");
+    setImageUrl(json.imageUrl);
+  };
+
+  const handleSave = async () => {
+    if (!user?.googleId) return;
+    setSaving(true);
+    try {
+      const resp = await fetch(`/api/users/${user.googleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name || undefined, username: username || undefined, bio: bio || undefined, image: imageUrl || undefined }),
+      });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || "Save failed");
+      alert("Profile updated");
+    } catch (e: any) {
+      alert(e.message || "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -9,9 +47,9 @@ export default function EditProfilePage() {
           <h1 className="text-section mb-2">Edit Profile</h1>
           <p className="text-subtitle">Update your portfolio information</p>
         </div>
-        <button className="btn-primary">
+        <button className="btn-primary" onClick={handleSave} disabled={saving}>
           <Save className="w-4 h-4 mr-2" />
-          Save Changes
+          {saving ? "Saving..." : "Save Changes"}
         </button>
       </div>
 
@@ -20,11 +58,17 @@ export default function EditProfilePage() {
         <div className="card-brutalist">
           <h2 className="text-lg font-black uppercase tracking-wide mb-4">Profile Picture</h2>
           <div className="text-center">
-            <div className="w-32 h-32 bg-accent rounded-full border-4 border-primary shadow-brutalist-lg mx-auto mb-4"></div>
-            <button className="btn-outline">
+            <div className="w-32 h-32 bg-accent rounded-full border-4 border-primary shadow-brutalist-lg mx-auto mb-4 overflow-hidden">
+              {imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={imageUrl} alt="Profile" className="w-full h-full object-cover" />
+              ) : null}
+            </div>
+            <label className="btn-outline cursor-pointer">
               <Upload className="w-4 h-4 mr-2" />
               Upload New Photo
-            </button>
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(e.target.files[0])} />
+            </label>
           </div>
         </div>
 
@@ -40,7 +84,8 @@ export default function EditProfilePage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="John Doe"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
                   style={{
                     fontFamily: "ui-monospace, SFMono-Regular, \"SF Mono\", Consolas, \"Liberation Mono\", Menlo, monospace",
@@ -56,7 +101,8 @@ export default function EditProfilePage() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="johndoe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase())}
                   className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
                   style={{
                     fontFamily: "ui-monospace, SFMono-Regular, \"SF Mono\", Consolas, \"Liberation Mono\", Menlo, monospace",
@@ -105,7 +151,8 @@ export default function EditProfilePage() {
               </label>
               <textarea
                 rows={4}
-                defaultValue="Passionate developer with 5+ years of experience building scalable web applications. I love creating user-friendly interfaces and robust backend systems."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
                 className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 resize-none"
                 style={{
                   fontFamily: "ui-monospace, SFMono-Regular, \"SF Mono\", Consolas, \"Liberation Mono\", Menlo, monospace",

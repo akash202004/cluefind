@@ -12,7 +12,7 @@ export default function DashboardPage() {
   const [githubId, setGithubId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [active, setActive] = useState<
-    "overview" | "resume" | "github" | "skills" | "projects" | "social" | "ai"
+    "overview" | "edit-profile" | "resume" | "github" | "skills" | "projects" | "social" | "ai"
   >("overview");
   const [fading, setFading] = useState(false);
 
@@ -28,7 +28,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const applyHash = () => {
       const hash = typeof window !== "undefined" ? window.location.hash : "";
-      if (hash === "#resume") setActive("resume");
+      if (hash === "#edit-profile") setActive("edit-profile");
+      else if (hash === "#resume") setActive("resume");
       else if (hash === "#github") setActive("github");
       else if (hash === "#skills") setActive("skills");
       else if (hash === "#projects") setActive("projects");
@@ -128,6 +129,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-section mb-1">Dashboard</h1>
           {active === "overview" && <p className="text-subtitle">Overview</p>}
+          {active === "edit-profile" && <InlineEditProfile />}
           {active === "resume" && (
             <p className="text-subtitle">Add Resume Content</p>
           )}
@@ -733,6 +735,69 @@ function AIReviewPanel() {
         <button className="btn-outline" disabled>
           Generate AI Review
         </button>
+      </div>
+    </div>
+  );
+}
+
+function InlineEditProfile() {
+  const { user } = useAuth();
+  const [bio, setBio] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+
+  const handleUpload = async (file: File) => {
+    const form = new FormData();
+    form.append("image", file);
+    if (user?.id) form.append("userId", user.id);
+    const resp = await fetch("/api/upload/profile-image", { method: "POST", body: form });
+    const json = await resp.json();
+    if (!resp.ok) throw new Error(json.error || "Upload failed");
+    setImageUrl(json.imageUrl);
+  };
+
+  const handleSave = async () => {
+    if (!user?.googleId) return;
+    setSaving(true);
+    try {
+      const resp = await fetch(`/api/users/${user.googleId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bio: bio || undefined, image: imageUrl ?? null }),
+      });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || "Save failed");
+      alert("Profile updated");
+    } catch (e: any) {
+      alert(e.message || "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">Edit Profile</h3>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="text-center">
+          <div className="w-32 h-32 bg-accent rounded-full border-4 border-primary shadow-brutalist-lg mx-auto mb-4 overflow-hidden">
+            {imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : null}
+          </div>
+          <label className="btn-outline cursor-pointer">
+            Upload New Photo
+            <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(e.target.files[0])} />
+          </label>
+        </div>
+        <div className="md:col-span-2 space-y-4">
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">Bio</label>
+            <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground" />
+          </div>
+          <button onClick={handleSave} disabled={saving} className="btn-primary">{saving ? "Saving..." : "Save Changes"}</button>
+        </div>
       </div>
     </div>
   );
