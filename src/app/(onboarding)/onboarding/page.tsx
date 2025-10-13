@@ -345,8 +345,11 @@ function ProfileImageStep({
       // Upload using our new API
       const formData = new FormData();
       formData.append("image", file);
+      if (user?.id) {
+        formData.append("userId", user.id);
+      }
 
-      const response = await fetch("/api/upload/image", {
+      const response = await fetch("/api/upload/profile-image", {
         method: "POST",
         body: formData,
         credentials: "include",

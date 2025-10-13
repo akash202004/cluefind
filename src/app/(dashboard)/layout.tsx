@@ -90,6 +90,13 @@ export default function DashboardLayout({
                 </span>
               </NavLink>
 
+              <NavLink href="/dashboard#edit-profile" active={active === "edit-profile"} onClick={() => setActive("edit-profile")}>
+                <User className="w-5 h-5" />
+                <span className="font-bold uppercase text-sm tracking-wide">
+                  Edit Profile
+                </span>
+              </NavLink>
+
               <NavLink href="/dashboard#resume" active={active === "resume"} onClick={() => setActive("resume")}>
                 <FileText className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
