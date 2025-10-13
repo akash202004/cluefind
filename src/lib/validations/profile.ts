@@ -6,9 +6,24 @@ export const createProfileSchema = z.object({
   resumeUrl: z.string().url("Invalid resume URL").optional(),
 });
 
+const projectSchema = z.object({
+  title: z.string().min(1, "Project title is required"),
+  description: z.string().min(1, "Project description is required"),
+  url: z.string().url("Invalid project URL").optional(),
+});
+
+const socialLinkSchema = z.object({
+  platform: z.string().min(1, "Platform is required"),
+  url: z.string().url("Invalid social link URL"),
+});
+
 export const updateProfileSchema = z.object({
   skills: z.array(z.string()).optional(),
   resumeUrl: z.string().url("Invalid resume URL").optional(),
+  resumeContent: z.string().optional(),
+  githubId: z.string().optional(),
+  projects: z.array(projectSchema).optional(),
+  socialLinks: z.array(socialLinkSchema).optional(),
 });
 
 export const getProfileByIdSchema = z.object({

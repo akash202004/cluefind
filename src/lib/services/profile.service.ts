@@ -35,6 +35,22 @@ export class ProfileService {
     }
   }
 
+  async checkUsernameAvailability(username: string) {
+    try {
+      const usernameRegex = /^[a-z0-9_-]{3,20}$/;
+      if (!usernameRegex.test(username)) {
+        throw new Error(
+          "Username must be 3-20 characters, lowercase letters, numbers, hyphens, and underscores only"
+        );
+      }
+
+      const existing = await db.user.findUnique({ where: { username } });
+      return { available: !existing };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getProfileById(id: string) {
     try {
       const profile = await db.profile.findUnique({

@@ -34,6 +34,8 @@ model Profile {
   resumeContent String?
   githubId      String?
   resumeUrl     String?
+  projects      Json?    // Array of {title, description, url}
+  socialLinks   Json?    // Array of {platform, url}
   lastSyncedAt  DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

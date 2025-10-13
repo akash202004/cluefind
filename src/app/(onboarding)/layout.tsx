@@ -42,7 +42,7 @@ function OnboardingContent({ children }: OnboardingLayoutProps) {
       <div className="bg-card border-b-4 border-primary">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-center space-x-4">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
                 <div
                   className={`w-8 h-8 border-4 border-primary rounded-full flex items-center justify-center text-sm font-black ${
@@ -55,7 +55,7 @@ function OnboardingContent({ children }: OnboardingLayoutProps) {
                 >
                   {step < currentStep ? "✓" : step}
                 </div>
-                {step < 4 && (
+                {step < 3 && (
                   <div
                     className={`w-16 h-1 border-2 mx-2 ${
                       step < currentStep

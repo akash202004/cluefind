@@ -2,19 +2,30 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  User,
-  Settings,
-  BarChart3,
-  FileText,
-  Users,
-  Brain,
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
+import { BarChart3, FileText, Brain, LogOut, User, Link2 } from "lucide-react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+
+function NavLink({ href, active, children, onClick }: { href: string; active: boolean; children: React.ReactNode; onClick: () => void }) {
+  return (
+    <a
+      href={href}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+        window.location.hash = href.split('#')[1] || '';
+      }}
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+        active
+          ? "bg-muted text-foreground"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+      }`}
+    >
+      {children}
+    </a>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -23,11 +34,28 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { signOut } = useAuth();
+  const [active, setActive] = useState<string>("dashboard");
 
   const handleSignOut = async () => {
     await signOut();
     router.push("/get-started");
   };
+
+  useEffect(() => {
+    const updateActive = () => {
+      const hash = typeof window !== "undefined" ? window.location.hash : "";
+      if (hash === "#resume") setActive("resume");
+      else if (hash === "#github") setActive("github");
+      else if (hash === "#skills") setActive("skills");
+      else if (hash === "#projects") setActive("projects");
+      else if (hash === "#social") setActive("social");
+      else if (hash === "#ai") setActive("ai");
+      else setActive("dashboard");
+    };
+    updateActive();
+    window.addEventListener("hashchange", updateActive);
+    return () => window.removeEventListener("hashchange", updateActive);
+  }, []);
 
   return (
     <ProtectedRoute requireAuth={true} requireProfile={true}>
@@ -37,21 +65,17 @@ export default function DashboardLayout({
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
-                <span className="text-primary-foreground font-black text-xl">
-                  D
-                </span>
+                <span className="text-primary-foreground font-black text-xl">D</span>
               </div>
               <span className="text-2xl font-black uppercase tracking-tight">
                 DevSync
               </span>
             </Link>
 
-            <div className="flex items-center gap-4">
-              <button className="btn-outline p-2">
-                <Menu className="w-5 h-5" />
-              </button>
-              <div className="w-8 h-8 bg-accent rounded-full border-4 border-primary shadow-brutalist-sm"></div>
-            </div>
+            <button onClick={handleSignOut} className="btn-outline">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </button>
           </div>
         </header>
 
@@ -59,77 +83,54 @@ export default function DashboardLayout({
           {/* Sidebar */}
           <aside className="w-64 bg-card border-r-4 border-primary min-h-screen p-6">
             <nav className="space-y-2">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
+              <NavLink href="/dashboard" active={active === "dashboard"} onClick={() => setActive("dashboard")}>
                 <BarChart3 className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Dashboard
                 </span>
-              </Link>
+              </NavLink>
 
-              <Link
-                href="/dashboard/profile"
-                className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
-                <User className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Profile
-                </span>
-              </Link>
-
-              <Link
-                href="/dashboard/projects"
-                className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
+              <NavLink href="/dashboard#resume" active={active === "resume"} onClick={() => setActive("resume")}>
                 <FileText className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
-                  Projects
+                  Add Resume Content
                 </span>
-              </Link>
+              </NavLink>
 
-              <Link
-                href="/dashboard/endorsements"
-                className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
-                <Users className="w-5 h-5" />
+              <NavLink href="/dashboard#github" active={active === "github"} onClick={() => setActive("github")}>
+                <Link2 className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
-                  Endorsements
+                  Connect GitHub
                 </span>
-              </Link>
+              </NavLink>
 
-              <Link
-                href="/dashboard/ai-review"
-                className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
+              <NavLink href="/dashboard#skills" active={active === "skills"} onClick={() => setActive("skills")}>
+                <User className="w-5 h-5" />
+                <span className="font-bold uppercase text-sm tracking-wide">
+                  Skills
+                </span>
+              </NavLink>
+
+              <NavLink href="/dashboard#projects" active={active === "projects"} onClick={() => setActive("projects")}>
+                <FileText className="w-5 h-5" />
+                <span className="font-bold uppercase text-sm tracking-wide">
+                  Projects Show Off
+                </span>
+              </NavLink>
+
+              <NavLink href="/dashboard#social" active={active === "social"} onClick={() => setActive("social")}>
+                <Link2 className="w-5 h-5" />
+                <span className="font-bold uppercase text-sm tracking-wide">
+                  Social Links
+                </span>
+              </NavLink>
+
+              <NavLink href="/dashboard#ai" active={active === "ai"} onClick={() => setActive("ai")}>
                 <Brain className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   AI Review
                 </span>
-              </Link>
-
-              <Link
-                href="/dashboard/settings"
-                className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Settings
-                </span>
-              </Link>
-
-              <div className="border-t-4 border-primary my-4"></div>
-
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-3 px-4 py-3 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors w-full text-left"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Sign Out
-                </span>
-              </button>
+              </NavLink>
             </nav>
           </aside>
 

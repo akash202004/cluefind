@@ -1,20 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import {
-  Plus,
-  ExternalLink,
-  Github,
-  FileText,
-  User,
-  LogOut,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
+
+  const [resumeContent, setResumeContent] = useState("");
+  const [githubId, setGithubId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [active, setActive] = useState<
+    "overview" | "resume" | "github" | "skills" | "projects" | "social" | "ai"
+  >("overview");
+  const [fading, setFading] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -25,240 +25,653 @@ export default function DashboardPage() {
     }
   };
 
+  useEffect(() => {
+    const applyHash = () => {
+      const hash = typeof window !== "undefined" ? window.location.hash : "";
+      if (hash === "#resume") setActive("resume");
+      else if (hash === "#github") setActive("github");
+      else if (hash === "#skills") setActive("skills");
+      else if (hash === "#projects") setActive("projects");
+      else if (hash === "#social") setActive("social");
+      else if (hash === "#ai") setActive("ai");
+      else setActive("overview");
+    };
+    applyHash();
+    window.addEventListener("hashchange", applyHash);
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, []);
+
+  useEffect(() => {
+    setFading(true);
+    const t = setTimeout(() => setFading(false), 150);
+    return () => clearTimeout(t);
+  }, [active]);
+
+  const resolveProfileId = async (): Promise<string> => {
+    const resp = await fetch("/api/users/" + user!.googleId, { method: "GET" });
+    const json = await resp.json();
+    if (!resp.ok) throw new Error(json.error || "Failed to fetch user");
+    return json.data.profile.id;
+  };
+
+  const handleSaveResume = async () => {
+    if (!resumeContent.trim()) return;
+    setSubmitting(true);
+    try {
+      const profileId = await resolveProfileId();
+      const saveResp = await fetch(`/api/profiles/${profileId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeContent }),
+      });
+      const saveData = await saveResp.json();
+      if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
+      alert("Resume content saved.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save resume");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSaveGithub = async () => {
+    if (!githubId.trim()) return;
+    setSubmitting(true);
+    try {
+      const profileId = await resolveProfileId();
+      const saveResp = await fetch(`/api/profiles/${profileId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ githubId }),
+      });
+      const saveData = await saveResp.json();
+      if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
+      alert("GitHub username saved.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save GitHub");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
+      <div className="min-h-screen flex items-center justify-center">Loading...</div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
+
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Page Header with unified submit */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-section mb-2">Dashboard</h1>
-          <p className="text-subtitle">
-            Welcome back, {user?.name || user?.email || "User"}! Manage your
-            portfolio.
-          </p>
-        </div>
-        <div className="flex gap-4">
-          <Link href="/dashboard/profile/edit" className="btn-primary">
-            <User className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Link>
-          <button onClick={handleSignOut} className="btn-outline">
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
-          </button>
+          <h1 className="text-section mb-1">Dashboard</h1>
+          {active === "overview" && <p className="text-subtitle">Overview</p>}
+          {active === "resume" && (
+            <p className="text-subtitle">Add Resume Content</p>
+          )}
+          {active === "github" && <p className="text-subtitle">Connect GitHub</p>}
+          {active === "skills" && <p className="text-subtitle">Skills</p>}
+          {active === "projects" && (
+            <p className="text-subtitle">Projects Show Off</p>
+          )}
+          {active === "social" && <p className="text-subtitle">Social Links</p>}
+          {active === "ai" && <p className="text-subtitle">AI Review</p>}
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="stat-box">
-          <div className="flex items-center justify-between mb-4">
-            <div className="icon-box-blue">
-              <Github className="w-6 h-6 text-primary" />
-            </div>
-            <span className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-              Repositories
-            </span>
-          </div>
-          <div className="text-3xl font-black mb-1">12</div>
-          <div className="text-sm text-muted-foreground">Public repos</div>
-        </div>
+      {/* Main panel - one component at a time, with fade */}
+      <div className={`transition-opacity duration-150 ${fading ? "opacity-0" : "opacity-100"}`}>
+        {active === "overview" && <OverviewPanel />}
+        {active === "resume" && (
+          <ResumePanel
+            resumeContent={resumeContent}
+            setResumeContent={setResumeContent}
+            onSave={handleSaveResume}
+            submitting={submitting}
+          />
+        )}
+        {active === "github" && (
+          <GithubPanel 
+            githubId={githubId} 
+            setGithubId={setGithubId}
+            onSave={handleSaveGithub}
+            submitting={submitting}
+          />
+        )}
+        {active === "skills" && <SkillsPanel resolveProfileId={resolveProfileId} />}
+        {active === "projects" && <ProjectsPanel resolveProfileId={resolveProfileId} />}
+        {active === "social" && <SocialLinksPanel resolveProfileId={resolveProfileId} />}
+        {active === "ai" && <AIReviewPanel />}
+      </div>
+    </div>
+  );
+}
 
-        <div className="stat-box bg-accent text-accent-foreground">
-          <div className="flex items-center justify-between mb-4">
-            <div className="icon-box-green">
-              <FileText className="w-6 h-6 text-primary" />
-            </div>
-            <span className="text-sm font-bold uppercase tracking-wide opacity-90">
-              Skills
-            </span>
-          </div>
-          <div className="text-3xl font-black mb-1">8</div>
-          <div className="text-sm opacity-90">Technologies</div>
-        </div>
-
-        <div className="stat-box bg-feature-purple text-primary-foreground">
-          <div className="flex items-center justify-between mb-4">
-            <div className="icon-box-purple">
-              <User className="w-6 h-6 text-primary" />
-            </div>
-            <span className="text-sm font-bold uppercase tracking-wide opacity-90">
-              Vouches
-            </span>
-          </div>
-          <div className="text-3xl font-black mb-1">5</div>
-          <div className="text-sm opacity-90">From colleagues</div>
-        </div>
+function OverviewPanel() {
+  return (
+    <div className="space-y-6">
+      <div className="card-brutalist">
+        <h2 className="text-xl font-black uppercase tracking-wide mb-4">
+          Dashboard Overview
+        </h2>
+        <p className="text-body mb-6">
+          Complete your profile by filling out each section. Use the left sidebar to navigate between sections.
+        </p>
       </div>
 
-      {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Recent Repositories */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card-brutalist">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-black uppercase tracking-wide">
-              Recent Repositories
-            </h2>
-            <Link
-              href="/dashboard/repos"
-              className="text-sm font-bold uppercase tracking-wide text-accent hover:text-accent/80 transition-colors"
-            >
-              View All
-            </Link>
-          </div>
-
-          <div className="space-y-4">
-            {[
-              {
-                title: "devsync-portfolio",
-                description:
-                  "Modern developer portfolio platform with AI features",
-                tech: ["Next.js", "TypeScript", "Prisma", "Tailwind"],
-                language: "TypeScript",
-              },
-              {
-                title: "task-manager",
-                description: "Collaborative task management tool",
-                tech: ["React", "Node.js", "MongoDB"],
-                language: "JavaScript",
-              },
-              {
-                title: "weather-app",
-                description: "Real-time weather dashboard",
-                tech: ["Vue.js", "Express", "Chart.js"],
-                language: "JavaScript",
-              },
-            ].map((repo, index) => (
-              <div
-                key={index}
-                className="border-4 border-primary rounded-lg p-4 bg-muted/50"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-black text-lg uppercase tracking-wide mb-1">
-                      {repo.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {repo.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {repo.tech.map((tech, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-1 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wide rounded"
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {repo.language}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-bold">{repo.language}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="btn-outline p-2">
-                      <ExternalLink className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3 className="text-lg font-black uppercase tracking-wide mb-3">
+            Add Resume Content
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Paste your resume text content here. This will be stored in your profile.
+          </p>
+          <a href="#resume" className="btn-outline text-sm">
+            Go to Resume Form
+          </a>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Recent Vouches */}
-          <div className="card-brutalist">
-            <h3 className="text-lg font-black uppercase tracking-wide mb-4">
-              Recent Vouches
-            </h3>
-            <div className="space-y-3">
-              {[
-                {
-                  name: "Sarah Chen",
-                  skill: "React",
-                  message: "Excellent frontend developer",
-                },
-                {
-                  name: "Mike Wilson",
-                  skill: "Node.js",
-                  message: "Great backend skills",
-                },
-                {
-                  name: "Alex Kim",
-                  skill: "TypeScript",
-                  message: "Clean, maintainable code",
-                },
-              ].map((vouch, index) => (
-                <div
+        <div className="card-brutalist">
+          <h3 className="text-lg font-black uppercase tracking-wide mb-3">
+            Connect GitHub
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Enter your GitHub username to showcase your repositories.
+          </p>
+          <a href="#github" className="btn-outline text-sm">
+            Go to GitHub Form
+          </a>
+        </div>
+
+        <div className="card-brutalist">
+          <h3 className="text-lg font-black uppercase tracking-wide mb-3">
+            Skills
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Add your technical skills and expertise areas.
+          </p>
+          <a href="#skills" className="btn-outline text-sm">
+            Go to Skills Form
+          </a>
+        </div>
+
+        <div className="card-brutalist">
+          <h3 className="text-lg font-black uppercase tracking-wide mb-3">
+            Projects Show Off
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Showcase your best projects and work samples.
+          </p>
+          <a href="#projects" className="btn-outline text-sm">
+            Go to Projects Form
+          </a>
+        </div>
+
+        <div className="card-brutalist">
+          <h3 className="text-lg font-black uppercase tracking-wide mb-3">
+            Social Links
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Add your social media profiles and professional links.
+          </p>
+          <a href="#social" className="btn-outline text-sm">
+            Go to Social Links Form
+          </a>
+        </div>
+
+        <div className="card-brutalist">
+          <h3 className="text-lg font-black uppercase tracking-wide mb-3">
+            AI Review
+          </h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Get AI-powered feedback on your profile and portfolio.
+          </p>
+          <a href="#ai" className="btn-outline text-sm">
+            Go to AI Review
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ResumePanel({
+  resumeContent,
+  setResumeContent,
+  onSave,
+  submitting,
+}: {
+  resumeContent: string;
+  setResumeContent: (v: string) => void;
+  onSave: () => void;
+  submitting: boolean;
+}) {
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        Resume Content
+      </h3>
+      <div className="space-y-4">
+        <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+          Paste your resume text
+        </label>
+        <textarea
+          value={resumeContent}
+          onChange={(e) => setResumeContent(e.target.value)}
+          placeholder="Paste your resume text here..."
+          rows={12}
+          className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none"
+        />
+        <p className="text-sm text-muted-foreground">
+          We store this text directly in Neon.
+        </p>
+        <button
+          onClick={onSave}
+          disabled={!resumeContent.trim() || submitting}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Saving..." : "Save Resume Content"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function GithubPanel({
+  githubId,
+  setGithubId,
+  onSave,
+  submitting,
+}: {
+  githubId: string;
+  setGithubId: (v: string) => void;
+  onSave: () => void;
+  submitting: boolean;
+}) {
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        GitHub Username
+      </h3>
+      <div className="space-y-4">
+        <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+          Enter your GitHub handle
+        </label>
+        <input
+          type="text"
+          placeholder="your-github-username"
+          value={githubId}
+          onChange={(e) => setGithubId(e.target.value)}
+          className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+        />
+        <button
+          onClick={onSave}
+          disabled={!githubId.trim() || submitting}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Saving..." : "Save GitHub Username"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<string> }) {
+  const [skills, setSkills] = useState<string[]>([]);
+  const [newSkill, setNewSkill] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const addSkill = () => {
+    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
+      setSkills([...skills, newSkill.trim()]);
+      setNewSkill("");
+    }
+  };
+
+  const removeSkill = (skill: string) => {
+    setSkills(skills.filter(s => s !== skill));
+  };
+
+  const handleSaveSkills = async () => {
+    if (skills.length === 0) return;
+    setSubmitting(true);
+    try {
+      const profileId = await resolveProfileId();
+      const saveResp = await fetch(`/api/profiles/${profileId}/skills`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skills }),
+      });
+      const saveData = await saveResp.json();
+      if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
+      alert("Skills saved successfully.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save skills");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        Skills
+      </h3>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+            Add New Skill
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              placeholder="e.g., React, Python, AWS"
+              className="flex-1 px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+              onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+            />
+            <button onClick={addSkill} className="btn-primary">
+              Add
+            </button>
+          </div>
+        </div>
+        
+        {skills.length > 0 && (
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+              Your Skills ({skills.length})
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, index) => (
+                <span
                   key={index}
-                  className="border-2 border-primary rounded-lg p-3 bg-muted/30"
+                  className="px-3 py-1 bg-primary text-primary-foreground text-sm font-bold rounded-lg flex items-center gap-2"
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 bg-accent rounded-full border-2 border-primary"></div>
-                    <span className="font-bold text-sm">{vouch.name}</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground mb-1">
-                    Vouched for{" "}
-                    <span className="font-bold text-accent">{vouch.skill}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    &quot;{vouch.message}&quot;
-                  </p>
-                </div>
+                  {skill}
+                  <button
+                    onClick={() => removeSkill(skill)}
+                    className="text-primary-foreground hover:text-red-300"
+                  >
+                    ×
+                  </button>
+                </span>
               ))}
             </div>
           </div>
+        )}
+        
+        <button
+          onClick={handleSaveSkills}
+          disabled={skills.length === 0 || submitting}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Saving..." : "Save Skills"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
-          {/* Quick Actions */}
-          <div className="card-brutalist">
-            <h3 className="text-lg font-black uppercase tracking-wide mb-4">
-              Quick Actions
-            </h3>
-            <div className="space-y-3">
-              <Link
-                href="/dashboard/ai-review"
-                className="btn-outline w-full text-left"
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Get AI Review
-              </Link>
-              <Link
-                href="/dashboard/profile/edit"
-                className="btn-outline w-full text-left"
-              >
-                <User className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Link>
-              <Link
-                href="/leaderboard"
-                className="btn-outline w-full text-left"
-              >
-                <Github className="w-4 h-4 mr-2" />
-                View Leaderboard
-              </Link>
-            </div>
+function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<string> }) {
+  const [projects, setProjects] = useState<Array<{title: string, description: string, url: string}>>([]);
+  const [newProject, setNewProject] = useState({title: "", description: "", url: ""});
+  const [submitting, setSubmitting] = useState(false);
+
+  const addProject = () => {
+    if (newProject.title.trim() && newProject.description.trim()) {
+      setProjects([...projects, {...newProject}]);
+      setNewProject({title: "", description: "", url: ""});
+    }
+  };
+
+  const removeProject = (index: number) => {
+    setProjects(projects.filter((_, i) => i !== index));
+  };
+
+  const handleSaveProjects = async () => {
+    if (projects.length === 0) return;
+    setSubmitting(true);
+    try {
+      const profileId = await resolveProfileId();
+      const saveResp = await fetch(`/api/profiles/${profileId}/projects`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projects }),
+      });
+      const saveData = await saveResp.json();
+      if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
+      alert("Projects saved successfully.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save projects");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        Projects Show Off
+      </h3>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+              Project Title
+            </label>
+            <input
+              type="text"
+              value={newProject.title}
+              onChange={(e) => setNewProject({...newProject, title: e.target.value})}
+              placeholder="My Awesome Project"
+              className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+              Project URL
+            </label>
+            <input
+              type="url"
+              value={newProject.url}
+              onChange={(e) => setNewProject({...newProject, url: e.target.value})}
+              placeholder="https://github.com/username/project"
+              className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+            />
           </div>
         </div>
+        
+        <div>
+          <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+            Description
+          </label>
+          <textarea
+            value={newProject.description}
+            onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+            placeholder="Describe your project..."
+            rows={3}
+            className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+        
+        <button onClick={addProject} className="btn-primary">
+          Add Project
+        </button>
+        
+        {projects.length > 0 && (
+          <div className="space-y-3">
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground">
+              Your Projects ({projects.length})
+            </label>
+            {projects.map((project, index) => (
+              <div key={index} className="border-4 border-primary rounded-lg p-4 bg-muted/30">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-bold text-lg">{project.title}</h4>
+                  <button
+                    onClick={() => removeProject(index)}
+                    className="text-muted-foreground hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                </div>
+                <p className="text-sm text-muted-foreground mb-2">{project.description}</p>
+                {project.url && (
+                  <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-sm">
+                    View Project →
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <button
+          onClick={handleSaveProjects}
+          disabled={projects.length === 0 || submitting}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Saving..." : "Save Projects"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promise<string> }) {
+  const [links, setLinks] = useState<Array<{platform: string, url: string}>>([]);
+  const [newLink, setNewLink] = useState({platform: "", url: ""});
+  const [submitting, setSubmitting] = useState(false);
+
+  const platforms = ["LinkedIn", "Twitter", "Instagram", "Portfolio", "Blog", "Other"];
+
+  const addLink = () => {
+    if (newLink.platform && newLink.url) {
+      setLinks([...links, {...newLink}]);
+      setNewLink({platform: "", url: ""});
+    }
+  };
+
+  const removeLink = (index: number) => {
+    setLinks(links.filter((_, i) => i !== index));
+  };
+
+  const handleSaveSocialLinks = async () => {
+    if (links.length === 0) return;
+    setSubmitting(true);
+    try {
+      const profileId = await resolveProfileId();
+      const saveResp = await fetch(`/api/profiles/${profileId}/social-links`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ socialLinks: links }),
+      });
+      const saveData = await saveResp.json();
+      if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
+      alert("Social links saved successfully.");
+    } catch (err: any) {
+      alert(err.message || "Failed to save social links");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        Social Links
+      </h3>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+              Platform
+            </label>
+            <select
+              value={newLink.platform}
+              onChange={(e) => setNewLink({...newLink, platform: e.target.value})}
+              className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground"
+            >
+              <option value="">Select Platform</option>
+              {platforms.map(platform => (
+                <option key={platform} value={platform}>{platform}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+              URL
+            </label>
+            <input
+              type="url"
+              value={newLink.url}
+              onChange={(e) => setNewLink({...newLink, url: e.target.value})}
+              placeholder="https://..."
+              className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
+        </div>
+        
+        <button onClick={addLink} className="btn-primary">
+          Add Link
+        </button>
+        
+        {links.length > 0 && (
+          <div className="space-y-3">
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground">
+              Your Social Links ({links.length})
+            </label>
+            {links.map((link, index) => (
+              <div key={index} className="border-4 border-primary rounded-lg p-4 bg-muted/30 flex justify-between items-center">
+                <div>
+                  <span className="font-bold">{link.platform}</span>
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline ml-2">
+                    {link.url}
+                  </a>
+                </div>
+                <button
+                  onClick={() => removeLink(index)}
+                  className="text-muted-foreground hover:text-red-500"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <button
+          onClick={handleSaveSocialLinks}
+          disabled={links.length === 0 || submitting}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting ? "Saving..." : "Save Social Links"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function AIReviewPanel() {
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        AI Review
+      </h3>
+      <p className="text-body mb-6">
+        Get AI-powered feedback on your profile and portfolio. This feature will analyze your content and provide suggestions for improvement.
+      </p>
+      <div className="bg-muted/30 border-4 border-primary rounded-lg p-6 text-center">
+        <p className="text-muted-foreground mb-4">
+          AI Review feature coming soon...
+        </p>
+        <button className="btn-outline" disabled>
+          Generate AI Review
+        </button>
       </div>
     </div>
   );

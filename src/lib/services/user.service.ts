@@ -220,7 +220,6 @@ export class UserService {
           profile: {
             select: {
               id: true,
-              username: true,
             },
           },
         },
@@ -264,9 +263,7 @@ export class UserService {
     onboardingData: {
       profileImage: string;
       username: string;
-      resumeContent: string;
-      githubId: string;
-      skills?: string[];
+      bio: string;
       name?: string;
     }
   ) {
@@ -280,39 +277,36 @@ export class UserService {
         throw new Error("User not found. Please sign in again.");
       }
 
-      // Check if username is taken by another user
+      // Check if username is taken on User table
       const existingUserWithUsername = await db.user.findUnique({
         where: { username: onboardingData.username },
       });
 
-      if (
-        existingUserWithUsername &&
-        existingUserWithUsername.id !== existingUser.id
-      ) {
+      if (existingUserWithUsername && existingUserWithUsername.id !== existingUser.id) {
         throw new Error("Username already taken");
       }
 
       // Update user and create profile in a transaction
       const result = await db.$transaction(async (tx) => {
-        // Update user with username and bio
+        // Update user
         const user = await tx.user.update({
           where: { googleId },
           data: {
             name: onboardingData.name || onboardingData.username,
             username: onboardingData.username,
+            bio: onboardingData.bio,
             image: onboardingData.profileImage,
-            bio: `Welcome to ${onboardingData.username}'s portfolio!`,
             onboardingComplete: true,
           },
         });
 
-        // Create profile without username and bio
-        const profile = await tx.profile.create({
-          data: {
+        // Create profile (without username/bio as they are on User)
+        const profile = await tx.profile.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: {
             userId: user.id,
-            resumeContent: onboardingData.resumeContent,
-            githubId: onboardingData.githubId,
-            skills: onboardingData.skills || [],
+            skills: [],
           },
         });
 

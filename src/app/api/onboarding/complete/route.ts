@@ -6,23 +6,13 @@ export async function POST(request: NextRequest) {
     const {
       profileImage,
       username,
-      resumeContent,
-      githubId,
-      skills,
+      bio,
       googleId,
-      email,
       name,
     } = await request.json();
 
     // Validate required fields
-    if (
-      !profileImage ||
-      !username ||
-      !resumeContent ||
-      !githubId ||
-      !googleId ||
-      !email
-    ) {
+    if (!profileImage || !username || !bio || !googleId) {
       return NextResponse.json(
         { error: "All fields are required" },
         { status: 400 }
@@ -34,9 +24,7 @@ export async function POST(request: NextRequest) {
     const result = await userService.completeOnboarding(googleId, {
       profileImage,
       username,
-      resumeContent,
-      githubId,
-      skills: skills || [],
+      bio,
       name: name || username,
     });
 
@@ -44,21 +32,15 @@ export async function POST(request: NextRequest) {
       success: true,
       userId: result.user.id,
       profileId: result.profile.id,
-      username: result.user.username,
+      username: result.profile.username,
       message: "Onboarding completed successfully",
     });
   } catch (error: any) {
     console.error("Error completing onboarding:", error);
 
-    // Handle Prisma unique constraint errors
+    // Prisma unique constraint errors
     if (error.code === "P2002") {
       const field = error.meta?.target?.[0];
-      if (field === "email") {
-        return NextResponse.json(
-          { error: "Email already registered" },
-          { status: 400 }
-        );
-      }
       if (field === "username") {
         return NextResponse.json(
           { error: "Username already taken" },
@@ -67,9 +49,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Common known errors from service
+    const message: string = typeof error?.message === "string" ? error.message : "Failed to complete onboarding";
+    const status = message.includes("User not found") ? 400 : 500;
+
     return NextResponse.json(
-      { error: "Failed to complete onboarding" },
-      { status: 500 }
+      { error: message || "Failed to complete onboarding" },
+      { status }
     );
   }
 }
