@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Github, Linkedin, Mail, ExternalLink } from "lucide-react";
+import VouchButton from "@/components/portfolio/VouchButton";
 import { db } from "@/lib/db";
 import type { Metadata } from "next";
 
@@ -64,6 +65,9 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           skills: true,
           githubId: true,
           socialLinks: true,
+          projects: true,
+          id: true,
+          _count: { select: { vouches: true } },
         },
       },
     },
@@ -77,6 +81,15 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const socialLinks = Array.isArray(user.profile.socialLinks)
     ? (user.profile.socialLinks as Array<{ platform: string; url: string }>)
     : [];
+  // Projects are stored as Json? in Profile; normalize to an array shape
+  const rawProjects = user.profile.projects as unknown;
+  const projects: Array<{
+    title?: string;
+    description?: string;
+    url?: string;
+    image?: string;
+    tags?: string[];
+  }> = Array.isArray(rawProjects) ? (rawProjects as any) : [];
   const githubUrl = user.profile.githubId
     ? `https://github.com/${user.profile.githubId}`
     : undefined;
@@ -140,16 +153,15 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
             ))}
           </div>
 
-          {/* Stats placeholder */}
-          <div className="flex flex-wrap gap-6 justify-center">
+          {/* Vouches */}
+          <div className="flex flex-col items-center gap-4 mb-2">
             <div className="stat-box bg-accent text-accent-foreground">
-              <div className="text-2xl font-black mb-1">—</div>
+              <div className="text-2xl font-black mb-1">{user.profile?._count?.vouches ?? 0}</div>
               <div className="text-sm uppercase tracking-wide opacity-90">Vouches</div>
             </div>
-            <div className="stat-box bg-feature-purple text-primary-foreground">
-              <div className="text-2xl font-black mb-1">—</div>
-              <div className="text-sm uppercase tracking-wide opacity-90">Rating</div>
-            </div>
+            {user.profile?.id && (
+              <VouchButton profileId={user.profile.id} />
+            )}
           </div>
         </section>
 
@@ -188,76 +200,52 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           )}
         </section>
 
+        {/* Projects Section */}
+        <section className="mb-12">
+          <h2 className="text-section mb-8 text-center">Projects</h2>
+          {projects.length === 0 ? (
+            <p className="text-center text-muted-foreground">No projects added yet.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project, idx) => (
+                <div key={idx} className="card-brutalist h-full flex flex-col">
+                  {project.image ? (
+                    <div className="w-full h-40 border-4 border-primary rounded mb-4 overflow-hidden">
+                      <Image src={project.image} alt={project.title || `Project ${idx+1}`} width={600} height={300} className="w-full h-full object-cover" />
+                    </div>
+                  ) : null}
+                  <h3 className="text-lg font-black uppercase tracking-wide mb-2">
+                    {project.title || `Project ${idx + 1}`}
+                  </h3>
+                  {project.description ? (
+                    <p className="text-sm text-muted-foreground mb-4">{project.description}</p>
+                  ) : null}
+                  {project.tags && project.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.tags.map((tag, tIdx) => (
+                        <span key={tIdx} className="px-2 py-0.5 bg-muted border-2 border-primary rounded text-xs font-bold uppercase tracking-wide">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="mt-auto">
+                    {project.url ? (
+                      <Link href={project.url} className="btn-outline inline-flex items-center">
+                        <ExternalLink className="w-4 h-4 mr-2" /> View Project
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         
       </main>
 
-      {/* Footer */}
-      <footer className="border-t-4 border-primary bg-card py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
-                  <span className="text-primary-foreground font-black text-sm">D</span>
-                </div>
-                <span className="text-xl font-black uppercase tracking-tight">DevSync</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                The modern developer portfolio platform with AI-powered insights and verified endorsements.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="font-black uppercase text-sm tracking-wide mb-4">Platform</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/features" className="hover:text-foreground transition-colors">Features</Link></li>
-                <li><Link href="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
-                <li><Link href="/leaderboard" className="hover:text-foreground transition-colors">Leaderboard</Link></li>
-                <li><Link href="/api" className="hover:text-foreground transition-colors">API</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-black uppercase text-sm tracking-wide mb-4">Community</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
-                <li><Link href="/docs" className="hover:text-foreground transition-colors">Documentation</Link></li>
-                <li><Link href="/support" className="hover:text-foreground transition-colors">Support</Link></li>
-                <li><Link href="/contact" className="hover:text-foreground transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-black uppercase text-sm tracking-wide mb-4">Connect</h3>
-              <div className="flex items-center gap-4">
-                <Link href="https://github.com" className="btn-outline p-2">
-                  <Github className="w-5 h-5" />
-                </Link>
-                <Link href="https://linkedin.com" className="btn-outline p-2">
-                  <Linkedin className="w-5 h-5" />
-                </Link>
-                <Link href="mailto:hello@devsync.com" className="btn-outline p-2">
-                  <Mail className="w-5 h-5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t-4 border-primary mt-8 pt-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              © 2024 DevSync. Built with ❤️ by{" "}
-              <Link href="https://github.com/yourusername" className="text-accent hover:text-accent/80 transition-colors">
-                Your Name
-              </Link>
-              . Connect on{" "}
-              <Link href="https://linkedin.com/in/yourprofile" className="text-accent hover:text-accent/80 transition-colors">
-                LinkedIn
-              </Link>
-              .
-            </p>
-          </div>
-        </div>
-      </footer>
+      {/* Footer removed on public username page */}
     </div>
   );
 }

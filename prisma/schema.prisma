@@ -31,6 +31,7 @@ model User {
 
   profile       Profile?
   vouches       Vouch[] @relation("VouchesGiven")
+  vouchActions  VouchAction[] @relation("VouchActionsGiven")
 }
 
 model Profile {
@@ -74,4 +75,19 @@ model Vouch {
 
   profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
   voucher     User     @relation("VouchesGiven", fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, voucherId])
+}
+
+model VouchAction {
+  id         String   @id @default(cuid())
+  voucherId  String
+  dayKey     String
+  count      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  voucher    User     @relation("VouchActionsGiven", fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@unique([voucherId, dayKey])
 }
