@@ -32,14 +32,11 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Pull latest image
             docker pull ${{ secrets.DOCKER_USERNAME }}/full-stack-assignment:latest
             
-            # Stop and remove old container (ignore errors if not exist)
             docker stop full-stack-assignment || true
             docker rm full-stack-assignment || true
-            
-            # Run new container and use .env from EC2
+              
             docker run -d -p 3000:3000 \
               --name full-stack-assignment \
               --env-file /home/ubuntu/full-stack-assignment/.env \

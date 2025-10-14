@@ -1,37 +1,50 @@
-# Official Node image based on Debian (includes full OpenSSL)
-FROM node:18-bullseye
+# =========================
+# Stage 1: Build
+# =========================
+FROM node:18-alpine AS builder
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Install dependencies first (leveraging Docker cache)
 COPY package*.json ./
 COPY prisma ./prisma/
-
-# Install dependencies
 RUN npm ci
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Copy source code
+# Copy the rest of the source code
 COPY . .
 
-# Build the Next.js application
+# Build Next.js application
 RUN npm run build
 
-# Create non-root user for security
-RUN addgroup --system nodejs && adduser --system --ingroup nodejs nextjs
+# =========================
+# Stage 2: Production
+# =========================
+FROM node:18-alpine
 
-# Change ownership of the app directory
+# Set working directory
+WORKDIR /app
+
+# Copy only necessary files from builder stage
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/public ./public
+
+# Create non-root user for security
+RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 RUN chown -R nextjs:nodejs /app
 USER nextjs
 
-# Expose port 3000
+# Expose port
 EXPOSE 3000
 
 # Set environment to production
 ENV NODE_ENV=production
 
-# Start the application
+# Start application
 CMD ["npm", "start"]

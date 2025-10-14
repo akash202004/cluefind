@@ -7,14 +7,24 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 
-function NavLink({ href, active, children, onClick }: { href: string; active: boolean; children: React.ReactNode; onClick: () => void }) {
+function NavLink({
+  href,
+  active,
+  children,
+  onClick,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
   return (
     <a
       href={href}
       onClick={(e) => {
         e.preventDefault();
         onClick();
-        window.location.hash = href.split('#')[1] || '';
+        window.location.hash = href.split("#")[1] || "";
       }}
       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
         active
@@ -38,20 +48,10 @@ export default function DashboardLayout({
 
   // Redirect recruiters to leaderboard
   useEffect(() => {
-    if (!loading && user?.role === 'RECRUITER') {
-      router.push('/leaderboard');
+    if (!loading && user?.role === "RECRUITER") {
+      router.push("/leaderboard");
     }
   }, [user, loading, router]);
-
-  const handleSignOut = async () => {
-    await signOut();
-    router.push("/get-started");
-  };
-
-  // Don't render dashboard for recruiters
-  if (user?.role === 'RECRUITER') {
-    return null;
-  }
 
   useEffect(() => {
     const updateActive = () => {
@@ -71,6 +71,16 @@ export default function DashboardLayout({
     return () => window.removeEventListener("hashchange", updateActive);
   }, []);
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/get-started");
+  };
+
+  // Don't render dashboard for recruiters
+  if (user?.role === "RECRUITER") {
+    return null;
+  }
+
   return (
     <ProtectedRoute requireAuth={true} requireProfile={true}>
       <div className="min-h-screen bg-background dot-grid-bg">
@@ -79,7 +89,9 @@ export default function DashboardLayout({
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
-                <span className="text-primary-foreground font-black text-xl">D</span>
+                <span className="text-primary-foreground font-black text-xl">
+                  D
+                </span>
               </div>
               <span className="text-2xl font-black uppercase tracking-tight">
                 DevSync
@@ -97,63 +109,99 @@ export default function DashboardLayout({
           {/* Sidebar */}
           <aside className="w-64 bg-card border-r-4 border-primary min-h-screen p-6">
             <nav className="space-y-2">
-              <NavLink href="/dashboard" active={active === "dashboard"} onClick={() => setActive("dashboard")}>
+              <NavLink
+                href="/dashboard"
+                active={active === "dashboard"}
+                onClick={() => setActive("dashboard")}
+              >
                 <BarChart3 className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Dashboard
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#view-profile" active={active === "view-profile"} onClick={() => setActive("view-profile")}>
+              <NavLink
+                href="/dashboard#view-profile"
+                active={active === "view-profile"}
+                onClick={() => setActive("view-profile")}
+              >
                 <User className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   View Profile
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#edit-profile" active={active === "edit-profile"} onClick={() => setActive("edit-profile")}>
+              <NavLink
+                href="/dashboard#edit-profile"
+                active={active === "edit-profile"}
+                onClick={() => setActive("edit-profile")}
+              >
                 <User className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Edit Profile
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#resume" active={active === "resume"} onClick={() => setActive("resume")}>
+              <NavLink
+                href="/dashboard#resume"
+                active={active === "resume"}
+                onClick={() => setActive("resume")}
+              >
                 <FileText className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Add Resume Content
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#github" active={active === "github"} onClick={() => setActive("github")}>
+              <NavLink
+                href="/dashboard#github"
+                active={active === "github"}
+                onClick={() => setActive("github")}
+              >
                 <Link2 className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Connect GitHub
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#skills" active={active === "skills"} onClick={() => setActive("skills")}>
+              <NavLink
+                href="/dashboard#skills"
+                active={active === "skills"}
+                onClick={() => setActive("skills")}
+              >
                 <User className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Skills
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#projects" active={active === "projects"} onClick={() => setActive("projects")}>
+              <NavLink
+                href="/dashboard#projects"
+                active={active === "projects"}
+                onClick={() => setActive("projects")}
+              >
                 <FileText className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Projects Show Off
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#social" active={active === "social"} onClick={() => setActive("social")}>
+              <NavLink
+                href="/dashboard#social"
+                active={active === "social"}
+                onClick={() => setActive("social")}
+              >
                 <Link2 className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Social Links
                 </span>
               </NavLink>
 
-              <NavLink href="/dashboard#ai" active={active === "ai"} onClick={() => setActive("ai")}>
+              <NavLink
+                href="/dashboard#ai"
+                active={active === "ai"}
+                onClick={() => setActive("ai")}
+              >
                 <Brain className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   AI Review
