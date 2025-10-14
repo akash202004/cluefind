@@ -7,7 +7,6 @@ import {
   Upload,
   User,
   FileText,
-  Github,
   ArrowRight,
   Check,
 } from "lucide-react";
@@ -18,8 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 interface OnboardingData {
   profileImage: string | null;
   username: string;
-  resumeContent: string;
-  githubId: string;
+  bio: string;
 }
 
 export default function OnboardingPage() {
@@ -29,8 +27,7 @@ export default function OnboardingPage() {
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     profileImage: null,
     username: "",
-    resumeContent: "",
-    githubId: "",
+    bio: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -50,7 +47,7 @@ export default function OnboardingPage() {
   }, [user, hasProfile, authLoading, router]);
 
   const handleNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     } else {
       // Complete onboarding
@@ -75,14 +72,10 @@ export default function OnboardingPage() {
       if (
         !onboardingData.profileImage ||
         !onboardingData.username ||
-        !onboardingData.resumeContent ||
-        !onboardingData.githubId
+        !onboardingData.bio
       ) {
         throw new Error("All fields are required");
       }
-
-      // Extract skills from resume (simple extraction)
-      const skills = extractSkillsFromResume(onboardingData.resumeContent);
 
       // Create user and profile in Prisma database
       const response = await fetch("/api/onboarding/complete", {
@@ -93,9 +86,7 @@ export default function OnboardingPage() {
         body: JSON.stringify({
           profileImage: onboardingData.profileImage,
           username: onboardingData.username,
-          resumeContent: onboardingData.resumeContent,
-          githubId: onboardingData.githubId,
-          skills: skills,
+          bio: onboardingData.bio,
           googleId: user.googleId,
           email: user.email!,
           name: user.name || onboardingData.username,
@@ -133,9 +124,8 @@ export default function OnboardingPage() {
       case 2:
         return onboardingData.username.length > 0;
       case 3:
-        return onboardingData.resumeContent.length > 0;
-      case 4:
-        return onboardingData.githubId.length > 0;
+        const wordCount = Math.ceil(onboardingData.bio.length / 5);
+        return onboardingData.bio.length > 0 && wordCount <= 30;
       default:
         return false;
     }
@@ -184,16 +174,9 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === 3 && (
-            <ResumeStep
-              data={onboardingData.resumeContent}
-              onUpdate={(value) => updateData("resumeContent", value)}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <GitHubStep
-              data={onboardingData.githubId}
-              onUpdate={(value) => updateData("githubId", value)}
+            <BioStep
+              data={onboardingData.bio}
+              onUpdate={(value) => updateData("bio", value)}
             />
           )}
         </div>
@@ -209,7 +192,7 @@ export default function OnboardingPage() {
           </button>
 
           <div className="flex items-center space-x-2">
-            {[1, 2, 3, 4].map((step) => (
+            {[1, 2, 3].map((step) => (
               <div
                 key={step}
                 className={`w-3 h-3 rounded-full border-2 ${
@@ -228,7 +211,7 @@ export default function OnboardingPage() {
             disabled={!isStepComplete(currentStep)}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {currentStep === 4 ? "Complete Setup" : "Next"}
+            {currentStep === 3 ? "Complete Setup" : "Next"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </button>
         </div>
@@ -237,82 +220,6 @@ export default function OnboardingPage() {
   );
 }
 
-// Helper function to extract skills from resume
-function extractSkillsFromResume(resumeContent: string): string[] {
-  const commonSkills = [
-    "JavaScript",
-    "TypeScript",
-    "React",
-    "Next.js",
-    "Node.js",
-    "Python",
-    "Java",
-    "C++",
-    "C#",
-    "HTML",
-    "CSS",
-    "Tailwind CSS",
-    "Bootstrap",
-    "SASS",
-    "SCSS",
-    "SQL",
-    "PostgreSQL",
-    "MySQL",
-    "MongoDB",
-    "Redis",
-    "Docker",
-    "Kubernetes",
-    "AWS",
-    "Azure",
-    "GCP",
-    "Git",
-    "GitHub",
-    "GitLab",
-    "CI/CD",
-    "REST API",
-    "GraphQL",
-    "Microservices",
-    "Agile",
-    "Scrum",
-    "DevOps",
-    "Linux",
-    "Windows",
-    "macOS",
-    "Vue.js",
-    "Angular",
-    "Express.js",
-    "FastAPI",
-    "Django",
-    "Flask",
-    "Spring Boot",
-    "Laravel",
-    "Symfony",
-    "Ruby on Rails",
-    "Go",
-    "Rust",
-    "Swift",
-    "Kotlin",
-    "PHP",
-    "Ruby",
-    "Scala",
-    "Elixir",
-    "Clojure",
-    "Haskell",
-    "F#",
-    "OCaml",
-  ];
-
-  const skills: string[] = [];
-  const content = resumeContent.toLowerCase();
-
-  for (const skill of commonSkills) {
-    if (content.includes(skill.toLowerCase())) {
-      skills.push(skill);
-    }
-  }
-
-  return skills.slice(0, 10); // Limit to 10 skills
-}
 
 // Step 1: Profile Image Upload
 function ProfileImageStep({
@@ -543,8 +450,8 @@ function UsernameStep({
   );
 }
 
-// Step 3: Resume Content
-function ResumeStep({
+// Step 3: Bio
+function BioStep({
   data,
   onUpdate,
 }: {
@@ -559,84 +466,36 @@ function ResumeStep({
         </div>
 
         <h2 className="text-xl font-black uppercase tracking-wide mb-4">
-          Paste Your Resume
+          Tell Us About Yourself
         </h2>
 
         <p className="text-body mb-6">
-          Copy and paste your resume content to showcase your experience
+          Write a brief bio to introduce yourself to the community (max 30 words)
         </p>
       </div>
 
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
-            Resume Content
+            Bio
           </label>
           <textarea
             value={data}
             onChange={(e) => onUpdate(e.target.value)}
-            placeholder="Paste your resume here..."
-            rows={10}
+            placeholder="Full-stack developer passionate about React and Node.js. Love creating innovative web solutions and contributing to open-source projects. Always eager to learn!"
+            rows={4}
+            maxLength={150}
             className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 resize-none"
           />
-          <div className="mt-2 text-sm text-muted-foreground">
-            {data.length} characters
+          <div className="mt-2 text-sm text-muted-foreground flex justify-between">
+            <span>{data.length} characters</span>
+            <span className={Math.ceil(data.length / 5) > 30 ? "text-feature-red font-bold" : ""}>
+              {Math.ceil(data.length / 5)} words / 30 max
+            </span>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Step 4: GitHub ID
-function GitHubStep({
-  data,
-  onUpdate,
-}: {
-  data: string;
-  onUpdate: (value: string) => void;
-}) {
-  return (
-    <div>
-      <div className="text-center mb-6">
-        <div className="icon-box-indigo mx-auto mb-4">
-          <Github className="w-8 h-8 text-primary" />
-        </div>
-
-        <h2 className="text-xl font-black uppercase tracking-wide mb-4">
-          Connect Your GitHub
-        </h2>
-
-        <p className="text-body mb-6">
-          Enter your GitHub username to showcase your repositories
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
-            GitHub Username
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={data}
-              onChange={(e) => onUpdate(e.target.value)}
-              placeholder="yourusername"
-              className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
-            />
-          </div>
-          {data && (
-            <div className="mt-2 text-sm">
-              <span className="text-muted-foreground">Your GitHub: </span>
-              <a
-                href={`https://github.com/${data}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold text-accent hover:underline"
-              >
-                github.com/{data}
-              </a>
+          {Math.ceil(data.length / 5) > 30 && (
+            <div className="mt-1 text-sm text-feature-red font-bold">
+              ⚠️ Please keep your bio under 30 words
             </div>
           )}
         </div>

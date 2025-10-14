@@ -3,8 +3,14 @@ import { UserService } from "@/lib/services/user.service";
 
 export async function POST(request: NextRequest) {
   try {
-    const { profileImage, username, bio, googleId, name } =
-      await request.json();
+    const { 
+      profileImage, 
+      username, 
+      bio, 
+      googleId, 
+      email, 
+      name 
+    } = await request.json();
 
     // Validate required fields
     if (!profileImage || !username || !bio || !googleId) {
@@ -16,11 +22,24 @@ export async function POST(request: NextRequest) {
 
     // Complete onboarding using service
     const userService = new UserService();
+    console.log("Onboarding data received:", {
+      profileImage,
+      username,
+      bio,
+      googleId,
+      name: name || username,
+    });
+    
     const result = await userService.completeOnboarding(googleId, {
       profileImage,
       username,
       bio,
       name: name || username,
+    });
+    
+    console.log("Onboarding completed successfully:", {
+      userId: result.user.id,
+      imageUrl: result.user.image,
     });
 
     return NextResponse.json({
