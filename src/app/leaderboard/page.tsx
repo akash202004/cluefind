@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Trophy, Heart, TrendingUp, Github, Linkedin, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Student {
   id: string;
@@ -27,6 +28,7 @@ interface LeaderboardData {
 }
 
 export default function LeaderboardPage() {
+  const { user, loading: authLoading, signOut } = useAuth();
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -82,23 +84,34 @@ export default function LeaderboardPage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
-              <span className="text-primary-foreground font-black text-xl">D</span>
+              <span className="text-primary-foreground font-black text-xl">C</span>
             </div>
             <span className="text-2xl font-black uppercase tracking-tight">Cluefind</span>
           </Link>
-          <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/#features" className="font-bold uppercase text-sm hover:text-accent transition-colors">
-              Features
-            </Link>
-            <Link href="/leaderboard" className="font-bold uppercase text-sm text-accent">
-              Leaderboard
-            </Link>
-            <button className="btn-outline text-sm px-4 py-2">
-              Sign In
-            </button>
-            <button className="btn-secondary text-sm px-4 py-2">
-              Get Started
-            </button>
+          <nav className="hidden md:flex items-center space-x-3">
+            {/* Common link */}
+            <Link href="/how-it-works" className="font-bold uppercase text-sm hover:text-accent transition-colors">How it Works</Link>
+            <Link href="/leaderboard" className="font-bold uppercase text-sm text-accent">Leaderboard</Link>
+
+            {/* Auth-aware actions */}
+            {authLoading ? (
+              <div className="text-sm text-muted-foreground">Loading...</div>
+            ) : user ? (
+              <>
+                {user.role !== "RECRUITER" && (
+                  <Link href="/dashboard" className="btn-outline text-sm px-4 py-2">Dashboard</Link>
+                )}
+                {user.username && user.role !== "RECRUITER" && (
+                  <Link href={`/${user.username}`} className="btn-outline text-sm px-4 py-2">My Profile</Link>
+                )}
+                <button onClick={signOut} className="btn-secondary text-sm px-4 py-2">Sign Out</button>
+              </>
+            ) : (
+              <>
+                <Link href="/get-started" className="btn-outline text-sm px-4 py-2">Sign In</Link>
+                <Link href="/get-started" className="btn-secondary text-sm px-4 py-2">Get Started</Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -124,7 +137,7 @@ export default function LeaderboardPage() {
             Leaderboard
           </h1>
           <p className="text-subtitle">
-            The best developers ranked by community vouches
+            Discover standout profiles. Sign in to view your dashboard or start building your profile.
           </p>
         </div>
 

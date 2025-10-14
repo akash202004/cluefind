@@ -22,6 +22,7 @@ export default function DashboardPage() {
     | "skills"
     | "projects"
     | "social"
+    | "ai"
   >("overview");
   const [fading, setFading] = useState(false);
 
@@ -44,7 +45,7 @@ export default function DashboardPage() {
       else if (hash === "#skills") setActive("skills");
       else if (hash === "#projects") setActive("projects");
       else if (hash === "#social") setActive("social");
-      
+      else if (hash === "#ai") setActive("ai");
       else setActive("overview");
     };
     applyHash();
@@ -143,6 +144,7 @@ export default function DashboardPage() {
     "skills",
     "projects",
     "social",
+    "ai",
   ] as const;
   const currentIndex = sections.indexOf(active as any);
   const prevSection = currentIndex > 0 ? sections[currentIndex - 1] : null;
@@ -178,6 +180,7 @@ export default function DashboardPage() {
             <p className="text-subtitle">Projects Show Off</p>
           )}
           {active === "social" && <p className="text-subtitle">Social Links</p>}
+          {active === "ai" && <p className="text-subtitle">AI Resume Review</p>}
         </div>
       </div>
 
@@ -236,7 +239,12 @@ export default function DashboardPage() {
             onNext={nextSection ? () => navigateTo(nextSection) : undefined}
           />
         )}
-
+        {active === "ai" && (
+          <AIResumeReviewPanel
+            resolveProfileId={resolveProfileId}
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+          />
+        )}
       </div>
     </div>
   );
@@ -995,6 +1003,158 @@ function SocialLinksPanel({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: () => Promise<string>; onPrev?: () => void; }) {
+  const [resumeText, setResumeText] = useState<string>("");
+  const [reviewSections, setReviewSections] = useState<Array<{ title: string; content: string }>>([]);
+  const [activeIdx, setActiveIdx] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [resumeLoading, setResumeLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const profileId = await resolveProfileId();
+        const resp = await fetch(`/api/profiles/${profileId}`);
+        const json = await resp.json();
+        if (resp.ok) {
+          setResumeText(json.data.resumeContent || "");
+        }
+      } catch (_) {}
+      finally {
+        setResumeLoading(false);
+      }
+    };
+    load();
+  }, [resolveProfileId]);
+
+  const cleanText = (s: string) => {
+    const lines = s.replace(/\r\n?/g, "\n").split("\n");
+    const cleaned = lines
+      .map((l) => l.replace(/^\s*[-•]\s*\[ \]\s*/g, "- ").replace(/^\s*[-•]\s*/g, "- "))
+      .filter((l) => {
+        const t = l.trim();
+        if (t === "-" || t === "–" || t === "—") return false;
+        if (t.length === 1 && /[a-z]/i.test(t)) return false; // stray single letters
+        return true;
+      });
+    // collapse extra blank lines
+    return cleaned.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  };
+
+  const handleGenerate = async () => {
+    if (!resumeText.trim()) {
+      toast.error("Add resume content first in the Resume section");
+      return;
+    }
+    setLoading(true);
+    setReviewSections([]);
+    setActiveIdx(0);
+    try {
+      const resp = await fetch("/api/ai/review-resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resume: resumeText }),
+      });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || "Failed to generate review");
+      const raw = (json.review || "").replace(/^#{1,6}\s*/gm, "").replace(/\*\*/g, "");
+      // Parse sections by numbered headings 0) .. 7)
+      const titles = [
+        "0) Roast",
+        "1) Executive Summary",
+        "2) Top 7 Issues",
+        "3) Rewrites",
+        "4) Skill Gaps",
+        "5) ATS & Clarity Checklist",
+        "6) 3 Strong Headlines",
+        "7) Final Action Plan",
+      ];
+      const pattern = new RegExp(`^(?:${titles.map(t => t.replace(/[()*+?.^$|\\]/g, "\\$&")).join("| ")})`, "m");
+      // Split with custom logic
+      const indices: Array<{ idx: number; title: string; start: number }> = [];
+      titles.forEach((t) => {
+        const re = new RegExp(`^\\s*${t.replace(/[()*+?.^$|\\]/g, "\\$&")}\\s*`, "m");
+        const m = raw.match(re);
+        if (m && m.index !== undefined) indices.push({ idx: Number(t[0]), title: t, start: m.index });
+      });
+      indices.sort((a, b) => a.start - b.start);
+      const sections: Array<{ title: string; content: string }> = [];
+      for (let i = 0; i < indices.length; i++) {
+        const cur = indices[i];
+        const next = indices[i + 1];
+        // Start from end of the heading line to avoid stray characters (e.g., line-wrapped 'y')
+        const headingLineEnd = raw.indexOf("\n", cur.start);
+        const startPos = headingLineEnd >= 0 ? headingLineEnd + 1 : cur.start + cur.title.length;
+        const slice = raw.substring(startPos).trim().slice(0, next ? next.start - startPos : undefined);
+        sections.push({ title: cur.title.replace(/^\d\)\s*/,'').trim(), content: cleanText(slice.trim()) });
+      }
+      if (sections.length === 0) {
+        // Fallback: single section
+        setReviewSections([{ title: "Review", content: cleanText(raw.trim()) }]);
+      } else {
+        setReviewSections(sections);
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to generate review");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">AI Resume Review</h3>
+      <p className="text-sm text-muted-foreground mb-4">Ensure your resume content is added in the Resume section. Then generate an actionable review.</p>
+
+      <div className="flex flex-col gap-3">
+        {resumeLoading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            Checking if your resume is available…
+          </div>
+        )}
+        <button onClick={handleGenerate} disabled={resumeLoading || !resumeText.trim() || loading} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+          {loading ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></span>
+              Please wait… AI is generating your review
+            </span>
+          ) : (
+            "Generate Review"
+          )}
+        </button>
+        {reviewSections.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {reviewSections.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveIdx(i)}
+                  className={`btn-outline text-xs px-3 py-1 ${i === activeIdx ? 'bg-muted' : ''}`}
+                >
+                  {s.title}
+                </button>
+              ))}
+            </div>
+            <div className="border-4 border-primary rounded-lg p-4 whitespace-pre-wrap bg-muted/30">
+              {reviewSections[activeIdx]?.content}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {onPrev && (
+        <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+          <button onClick={onPrev} className="btn-outline flex-1 flex items-center justify-center gap-2">
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        </div>
+      )}
     </div>
   );
 }

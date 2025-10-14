@@ -73,6 +73,7 @@ export default function DashboardLayout({
       else if (hash === "#skills") setActive("skills");
       else if (hash === "#projects") setActive("projects");
       else if (hash === "#social") setActive("social");
+      else if (hash === "#ai") setActive("ai");
       
       else setActive("dashboard");
     };
@@ -295,7 +296,17 @@ export default function DashboardLayout({
                 <Link2 className="w-4 h-4" />
                 <span className="font-medium text-sm">Social Links</span>
               </NavLink>
-
+              <NavLink
+                href="/dashboard#ai"
+                active={active === "ai"}
+                onClick={() => {
+                  setActive("ai");
+                  setMobileOpen(false);
+                }}
+              >
+                <Brain className="w-4 h-4" />
+                <span className="font-medium text-sm">AI Resume Review</span>
+              </NavLink>
               
             </nav>
           </aside>

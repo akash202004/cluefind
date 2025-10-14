@@ -38,6 +38,62 @@ export const aiService = {
     }
   },
 
+  async generateResumeReview(resumeText: string): Promise<string> {
+    if (
+      !process.env.OPENAI_API_KEY ||
+      process.env.OPENAI_API_KEY === "dummy-key-for-build"
+    ) {
+      return "Resume review (demo): Add stronger impact statements, quantify achievements, and front-load key skills relevant to your target roles.";
+    }
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: [
+              "You are a witty senior staff engineer and recruiter.",
+              "Step 1: deliver a playful roast — punchy, humorous, never personal or offensive.",
+              "Step 2: deliver an actually useful, high-signal critique that improves interview conversion.",
+              "Rules:",
+              "- Be specific and concrete. Avoid generic advice.",
+              "- Prefer measurable outcomes, scope, scale, tech depth.",
+              "- When you make a suggestion, show a before→after rewrite.",
+              "- Keep structure consistent and skimmable.",
+            ].join("\n"),
+          },
+          {
+            role: "user",
+            content: [
+              "Review the resume content below. First, roast it (playful, non-offensive). Then provide serious guidance.",
+              "Output exactly these sections:",
+              "0) Roast (4-6 short bullets; playful, about the writing not the person)",
+              "1) Executive Summary (3 bullets)",
+              "2) Top 7 Issues (ranked, each with rationale)",
+              "3) Rewrites (3-5 bullets rewritten with quantified impact; use STAR framing where natural)",
+              "4) Skill Gaps (what’s missing for senior roles; keep it realistic)",
+              "5) ATS & Clarity Checklist (10 yes/no checks with 1-line fixes)",
+              "6) 3 Strong Headlines (concise, role-aligned)",
+              "7) Final Action Plan (5 steps in priority order)",
+              "If the content lacks detail, call it out explicitly and suggest what to add.",
+              "\nResume Content:\n" + resumeText,
+            ].join("\n"),
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 700,
+      });
+      return (
+        completion.choices[0]?.message?.content ||
+        "Consider quantifying impact, rewriting bullets for outcomes, aligning headlines to target roles, and closing obvious skill gaps."
+      );
+    } catch (error) {
+      console.warn("OpenAI API error:", error);
+      return "Unable to generate a review right now. Try again later.";
+    }
+  },
+
   async generateProjectDescription(projectData: any): Promise<string> {
     if (
       !process.env.OPENAI_API_KEY ||
