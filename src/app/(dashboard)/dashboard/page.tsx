@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User } from "lucide-react";
+import { User, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -14,7 +14,15 @@ export default function DashboardPage() {
   const [githubId, setGithubId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [active, setActive] = useState<
-    "overview" | "view-profile" | "edit-profile" | "resume" | "github" | "skills" | "projects" | "social" | "ai"
+    | "overview"
+    | "view-profile"
+    | "edit-profile"
+    | "resume"
+    | "github"
+    | "skills"
+    | "projects"
+    | "social"
+    | "ai"
   >("overview");
   const [fading, setFading] = useState(false);
 
@@ -119,11 +127,34 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
     );
   }
 
   if (!user) return null;
+
+  // Navigation flow
+  const sections = [
+    "overview",
+    "edit-profile",
+    "resume",
+    "github",
+    "skills",
+    "projects",
+    "social",
+    "ai",
+  ] as const;
+  const currentIndex = sections.indexOf(active as any);
+  const prevSection = currentIndex > 0 ? sections[currentIndex - 1] : null;
+  const nextSection =
+    currentIndex < sections.length - 1 ? sections[currentIndex + 1] : null;
+
+  const navigateTo = (section: string) => {
+    setActive(section as any);
+    window.location.hash = section === "overview" ? "" : section;
+  };
 
   return (
     <div className="space-y-8">
@@ -132,12 +163,18 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-section mb-1">Dashboard</h1>
           {active === "overview" && <p className="text-subtitle">Overview</p>}
-          {active === "view-profile" && <p className="text-subtitle">View Profile</p>}
-          {active === "edit-profile" && <p className="text-subtitle">Edit Profile</p>}
+          {active === "view-profile" && (
+            <p className="text-subtitle">View Profile</p>
+          )}
+          {active === "edit-profile" && (
+            <p className="text-subtitle">Edit Profile</p>
+          )}
           {active === "resume" && (
             <p className="text-subtitle">Add Resume Content</p>
           )}
-          {active === "github" && <p className="text-subtitle">Connect GitHub</p>}
+          {active === "github" && (
+            <p className="text-subtitle">Connect GitHub</p>
+          )}
           {active === "skills" && <p className="text-subtitle">Skills</p>}
           {active === "projects" && (
             <p className="text-subtitle">Projects Show Off</p>
@@ -148,36 +185,75 @@ export default function DashboardPage() {
       </div>
 
       {/* Main panel - one component at a time, with fade */}
-      <div className={`transition-opacity duration-150 ${fading ? "opacity-0" : "opacity-100"}`}>
-        {active === "overview" && <OverviewPanel />}
+      <div
+        className={`transition-opacity duration-150 ${
+          fading ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        {active === "overview" && <OverviewPanel onNavigate={navigateTo} />}
         {active === "view-profile" && <ViewProfilePanel />}
-        {active === "edit-profile" && <InlineEditProfile />}
+        {active === "edit-profile" && (
+          <InlineEditProfile
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+            onNext={nextSection ? () => navigateTo(nextSection) : undefined}
+          />
+        )}
         {active === "resume" && (
           <ResumePanel
             resumeContent={resumeContent}
             setResumeContent={setResumeContent}
             onSave={handleSaveResume}
             submitting={submitting}
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+            onNext={nextSection ? () => navigateTo(nextSection) : undefined}
           />
         )}
         {active === "github" && (
-          <GithubPanel 
-            githubId={githubId} 
+          <GithubPanel
+            githubId={githubId}
             setGithubId={setGithubId}
             onSave={handleSaveGithub}
             submitting={submitting}
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+            onNext={nextSection ? () => navigateTo(nextSection) : undefined}
           />
         )}
-        {active === "skills" && <SkillsPanel resolveProfileId={resolveProfileId} />}
-        {active === "projects" && <ProjectsPanel resolveProfileId={resolveProfileId} />}
-        {active === "social" && <SocialLinksPanel resolveProfileId={resolveProfileId} />}
-        {active === "ai" && <AIReviewPanel />}
+        {active === "skills" && (
+          <SkillsPanel
+            resolveProfileId={resolveProfileId}
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+            onNext={nextSection ? () => navigateTo(nextSection) : undefined}
+          />
+        )}
+        {active === "projects" && (
+          <ProjectsPanel
+            resolveProfileId={resolveProfileId}
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+            onNext={nextSection ? () => navigateTo(nextSection) : undefined}
+          />
+        )}
+        {active === "social" && (
+          <SocialLinksPanel
+            resolveProfileId={resolveProfileId}
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+            onNext={nextSection ? () => navigateTo(nextSection) : undefined}
+          />
+        )}
+        {active === "ai" && (
+          <AIReviewPanel
+            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function OverviewPanel() {
+function OverviewPanel({
+  onNavigate,
+}: {
+  onNavigate: (section: string) => void;
+}) {
   return (
     <div className="space-y-6">
       <div className="card-brutalist">
@@ -185,8 +261,15 @@ function OverviewPanel() {
           Dashboard Overview
         </h2>
         <p className="text-body mb-6">
-          Complete your profile by filling out each section. Use the left sidebar to navigate between sections.
+          Complete your profile by filling out each section. Use the buttons
+          below or the left sidebar to navigate between sections.
         </p>
+        <button
+          onClick={() => onNavigate("edit-profile")}
+          className="btn-primary w-full md:w-auto"
+        >
+          Get Started
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -195,7 +278,8 @@ function OverviewPanel() {
             Add Resume Content
           </h3>
           <p className="text-sm text-muted-foreground mb-4">
-            Paste your resume text content here. This will be stored in your profile.
+            Paste your resume text content here. This will be stored in your
+            profile.
           </p>
           <a href="#resume" className="btn-outline text-sm">
             Go to Resume Form
@@ -271,11 +355,15 @@ function ResumePanel({
   setResumeContent,
   onSave,
   submitting,
+  onPrev,
+  onNext,
 }: {
   resumeContent: string;
   setResumeContent: (v: string) => void;
   onSave: () => void;
   submitting: boolean;
+  onPrev?: () => void;
+  onNext?: () => void;
 }) {
   return (
     <div className="card-brutalist">
@@ -301,6 +389,28 @@ function ResumePanel({
           {submitting ? "Saving..." : "Save Resume Content"}
         </button>
       </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+        {onPrev && (
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -310,11 +420,15 @@ function GithubPanel({
   setGithubId,
   onSave,
   submitting,
+  onPrev,
+  onNext,
 }: {
   githubId: string;
   setGithubId: (v: string) => void;
   onSave: () => void;
   submitting: boolean;
+  onPrev?: () => void;
+  onNext?: () => void;
 }) {
   return (
     <div className="card-brutalist">
@@ -340,11 +454,41 @@ function GithubPanel({
           {submitting ? "Saving..." : "Save GitHub Username"}
         </button>
       </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+        {onPrev && (
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<string> }) {
+function SkillsPanel({
+  resolveProfileId,
+  onPrev,
+  onNext,
+}: {
+  resolveProfileId: () => Promise<string>;
+  onPrev?: () => void;
+  onNext?: () => void;
+}) {
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -371,7 +515,7 @@ function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<str
   };
 
   const removeSkill = (skill: string) => {
-    setSkills(skills.filter(s => s !== skill));
+    setSkills(skills.filter((s) => s !== skill));
   };
 
   const handleSaveSkills = async () => {
@@ -411,14 +555,14 @@ function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<str
               onChange={(e) => setNewSkill(e.target.value)}
               placeholder="e.g., React, Python, AWS"
               className="flex-1 px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
-              onKeyPress={(e) => e.key === 'Enter' && addSkill()}
+              onKeyPress={(e) => e.key === "Enter" && addSkill()}
             />
             <button onClick={addSkill} className="btn-primary">
               Add
             </button>
           </div>
         </div>
-        
+
         {skills.length > 0 && (
           <div>
             <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
@@ -442,7 +586,7 @@ function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<str
             </div>
           </div>
         )}
-        
+
         <button
           onClick={handleSaveSkills}
           disabled={skills.length === 0 || submitting}
@@ -451,13 +595,49 @@ function SkillsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<str
           {submitting ? "Saving..." : "Save Skills"}
         </button>
       </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+        {onPrev && (
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<string> }) {
-  const [projects, setProjects] = useState<Array<{title: string, description: string, url: string}>>([]);
-  const [newProject, setNewProject] = useState({title: "", description: "", url: ""});
+function ProjectsPanel({
+  resolveProfileId,
+  onPrev,
+  onNext,
+}: {
+  resolveProfileId: () => Promise<string>;
+  onPrev?: () => void;
+  onNext?: () => void;
+}) {
+  const [projects, setProjects] = useState<
+    Array<{ title: string; description: string; url: string }>
+  >([]);
+  const [newProject, setNewProject] = useState({
+    title: "",
+    description: "",
+    url: "",
+  });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -476,8 +656,8 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
 
   const addProject = () => {
     if (newProject.title.trim() && newProject.description.trim()) {
-      setProjects([...projects, {...newProject}]);
-      setNewProject({title: "", description: "", url: ""});
+      setProjects([...projects, { ...newProject }]);
+      setNewProject({ title: "", description: "", url: "" });
     }
   };
 
@@ -519,7 +699,9 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
             <input
               type="text"
               value={newProject.title}
-              onChange={(e) => setNewProject({...newProject, title: e.target.value})}
+              onChange={(e) =>
+                setNewProject({ ...newProject, title: e.target.value })
+              }
               placeholder="My Awesome Project"
               className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
             />
@@ -531,37 +713,44 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
             <input
               type="url"
               value={newProject.url}
-              onChange={(e) => setNewProject({...newProject, url: e.target.value})}
+              onChange={(e) =>
+                setNewProject({ ...newProject, url: e.target.value })
+              }
               placeholder="https://github.com/username/project"
               className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
         </div>
-        
+
         <div>
           <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
             Description
           </label>
           <textarea
             value={newProject.description}
-            onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+            onChange={(e) =>
+              setNewProject({ ...newProject, description: e.target.value })
+            }
             placeholder="Describe your project..."
             rows={3}
             className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
           />
         </div>
-        
+
         <button onClick={addProject} className="btn-primary">
           Add Project
         </button>
-        
+
         {projects.length > 0 && (
           <div className="space-y-3">
             <label className="block text-sm font-bold uppercase tracking-wide text-foreground">
               Your Projects ({projects.length})
             </label>
             {projects.map((project, index) => (
-              <div key={index} className="border-4 border-primary rounded-lg p-4 bg-muted/30">
+              <div
+                key={index}
+                className="border-4 border-primary rounded-lg p-4 bg-muted/30"
+              >
                 <div className="flex justify-between items-start mb-2">
                   <h4 className="font-bold text-lg">{project.title}</h4>
                   <button
@@ -571,9 +760,16 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
                     ×
                   </button>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{project.description}</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  {project.description}
+                </p>
                 {project.url && (
-                  <a href={project.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline text-sm">
+                  <a
+                    href={project.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent hover:underline text-sm"
+                  >
                     View Project →
                   </a>
                 )}
@@ -581,7 +777,7 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
             ))}
           </div>
         )}
-        
+
         <button
           onClick={handleSaveProjects}
           disabled={projects.length === 0 || submitting}
@@ -590,13 +786,45 @@ function ProjectsPanel({ resolveProfileId }: { resolveProfileId: () => Promise<s
           {submitting ? "Saving..." : "Save Projects"}
         </button>
       </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+        {onPrev && (
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promise<string> }) {
-  const [links, setLinks] = useState<Array<{platform: string, url: string}>>([]);
-  const [newLink, setNewLink] = useState({platform: "", url: ""});
+function SocialLinksPanel({
+  resolveProfileId,
+  onPrev,
+  onNext,
+}: {
+  resolveProfileId: () => Promise<string>;
+  onPrev?: () => void;
+  onNext?: () => void;
+}) {
+  const [links, setLinks] = useState<Array<{ platform: string; url: string }>>(
+    []
+  );
+  const [newLink, setNewLink] = useState({ platform: "", url: "" });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -613,12 +841,19 @@ function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promis
     load();
   }, [resolveProfileId]);
 
-  const platforms = ["LinkedIn", "Twitter", "Instagram", "Portfolio", "Blog", "Other"];
+  const platforms = [
+    "LinkedIn",
+    "Twitter",
+    "Instagram",
+    "Portfolio",
+    "Blog",
+    "Other",
+  ];
 
   const addLink = () => {
     if (newLink.platform && newLink.url) {
-      setLinks([...links, {...newLink}]);
-      setNewLink({platform: "", url: ""});
+      setLinks([...links, { ...newLink }]);
+      setNewLink({ platform: "", url: "" });
     }
   };
 
@@ -659,12 +894,16 @@ function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promis
             </label>
             <select
               value={newLink.platform}
-              onChange={(e) => setNewLink({...newLink, platform: e.target.value})}
+              onChange={(e) =>
+                setNewLink({ ...newLink, platform: e.target.value })
+              }
               className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground"
             >
               <option value="">Select Platform</option>
-              {platforms.map(platform => (
-                <option key={platform} value={platform}>{platform}</option>
+              {platforms.map((platform) => (
+                <option key={platform} value={platform}>
+                  {platform}
+                </option>
               ))}
             </select>
           </div>
@@ -675,27 +914,35 @@ function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promis
             <input
               type="url"
               value={newLink.url}
-              onChange={(e) => setNewLink({...newLink, url: e.target.value})}
+              onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
               placeholder="https://..."
               className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
         </div>
-        
+
         <button onClick={addLink} className="btn-primary">
           Add Link
         </button>
-        
+
         {links.length > 0 && (
           <div className="space-y-3">
             <label className="block text-sm font-bold uppercase tracking-wide text-foreground">
               Your Social Links ({links.length})
             </label>
             {links.map((link, index) => (
-              <div key={index} className="border-4 border-primary rounded-lg p-4 bg-muted/30 flex justify-between items-center">
+              <div
+                key={index}
+                className="border-4 border-primary rounded-lg p-4 bg-muted/30 flex justify-between items-center"
+              >
                 <div>
                   <span className="font-bold">{link.platform}</span>
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:underline ml-2">
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent hover:underline ml-2"
+                  >
                     {link.url}
                   </a>
                 </div>
@@ -709,7 +956,7 @@ function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promis
             ))}
           </div>
         )}
-        
+
         <button
           onClick={handleSaveSocialLinks}
           disabled={links.length === 0 || submitting}
@@ -718,18 +965,41 @@ function SocialLinksPanel({ resolveProfileId }: { resolveProfileId: () => Promis
           {submitting ? "Saving..." : "Save Social Links"}
         </button>
       </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+        {onPrev && (
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-function AIReviewPanel() {
+function AIReviewPanel({ onPrev }: { onPrev?: () => void }) {
   return (
     <div className="card-brutalist">
       <h3 className="text-lg font-black uppercase tracking-wide mb-4">
         AI Review
       </h3>
       <p className="text-body mb-6">
-        Get AI-powered feedback on your profile and portfolio. This feature will analyze your content and provide suggestions for improvement.
+        Get AI-powered feedback on your profile and portfolio. This feature will
+        analyze your content and provide suggestions for improvement.
       </p>
       <div className="bg-muted/30 border-4 border-primary rounded-lg p-6 text-center">
         <p className="text-muted-foreground mb-4">
@@ -739,6 +1009,19 @@ function AIReviewPanel() {
           Generate AI Review
         </button>
       </div>
+
+      {/* Navigation */}
+      {onPrev && (
+        <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -748,39 +1031,40 @@ function ViewProfilePanel() {
   const router = useRouter();
 
   const handleViewProfile = () => {
-    console.log('User data:', user);
+    console.log("User data:", user);
     if (user?.username) {
-      router.push(`/${user.username}`);
+      window.open(`/${user.username}`, "_blank");
     } else {
-      toast.error('Username not found. Please complete your profile setup.');
+      toast.error("Username not found. Please complete your profile setup.");
     }
-  };
-
-  const handleRefreshUser = async () => {
-    await refreshUser();
-    toast.success('User data refreshed');
   };
 
   return (
     <div className="card-brutalist">
-      <h3 className="text-lg font-black uppercase tracking-wide mb-4">View Your Public Profile</h3>
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        View Your Public Profile
+      </h3>
       <p className="text-body mb-6">
-        See how your profile looks to others. This will open your public profile page at /{user?.username || 'username'}.
+        See how your profile looks to others. This will open your public profile
+        page at /{user?.username || "username"}.
       </p>
       <div className="flex gap-4">
         <button onClick={handleViewProfile} className="btn-primary">
           <User className="w-4 h-4 mr-2" />
           View Public Profile
         </button>
-        <button onClick={handleRefreshUser} className="btn-outline">
-          Refresh User Data
-        </button>
       </div>
     </div>
   );
 }
 
-function InlineEditProfile() {
+function InlineEditProfile({
+  onPrev,
+  onNext,
+}: {
+  onPrev?: () => void;
+  onNext?: () => void;
+}) {
   const { user } = useAuth();
   const [bio, setBio] = useState("");
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
@@ -805,7 +1089,10 @@ function InlineEditProfile() {
     const form = new FormData();
     form.append("image", file);
     if (user?.id) form.append("userId", user.id);
-    const resp = await fetch("/api/upload/profile-image", { method: "POST", body: form });
+    const resp = await fetch("/api/upload/profile-image", {
+      method: "POST",
+      body: form,
+    });
     const json = await resp.json();
     if (!resp.ok) throw new Error(json.error || "Upload failed");
     setImageUrl(json.imageUrl);
@@ -818,7 +1105,10 @@ function InlineEditProfile() {
       const resp = await fetch(`/api/users/${user.googleId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bio: bio || undefined, image: imageUrl ?? null }),
+        body: JSON.stringify({
+          bio: bio || undefined,
+          image: imageUrl ?? null,
+        }),
       });
       const json = await resp.json();
       if (!resp.ok) throw new Error(json.error || "Save failed");
@@ -832,27 +1122,75 @@ function InlineEditProfile() {
 
   return (
     <div className="card-brutalist">
-      <h3 className="text-lg font-black uppercase tracking-wide mb-4">Edit Profile</h3>
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        Edit Profile
+      </h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="text-center">
           <div className="w-32 h-32 bg-accent rounded-full border-4 border-primary shadow-brutalist-lg mx-auto mb-4 overflow-hidden">
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageUrl} alt="Profile" className="w-full h-full object-cover" />
+              <img
+                src={imageUrl}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
             ) : null}
           </div>
           <label className="btn-outline cursor-pointer">
             Upload New Photo
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(e.target.files[0])} />
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) =>
+                e.target.files && handleUpload(e.target.files[0])
+              }
+            />
           </label>
         </div>
         <div className="md:col-span-2 space-y-4">
           <div>
-            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">Bio</label>
-            <textarea rows={4} value={bio} onChange={(e) => setBio(e.target.value)} className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground" />
+            <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+              Bio
+            </label>
+            <textarea
+              rows={4}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground"
+            />
           </div>
-          <button onClick={handleSave} disabled={saving} className="btn-primary">{saving ? "Saving..." : "Save Changes"}</button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-primary"
+          >
+            {saving ? "Saving..." : "Save Changes"}
+          </button>
         </div>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
+        {onPrev && (
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );

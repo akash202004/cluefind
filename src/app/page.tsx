@@ -71,9 +71,6 @@ export default function HomePage() {
             ) : (
               // Guest user navigation
               <>
-                <Link href="#features" className="font-bold uppercase text-sm hover:text-accent transition-colors">
-                  Features
-                </Link>
                 <Link href="#how-it-works" className="font-bold uppercase text-sm hover:text-accent transition-colors">
                   How it Works
                 </Link>

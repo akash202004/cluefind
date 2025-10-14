@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BarChart3, FileText, Brain, LogOut, User, Link2 } from "lucide-react";
+import {
+  BarChart3,
+  FileText,
+  Brain,
+  LogOut,
+  User,
+  Link2,
+  Menu,
+  X,
+} from "lucide-react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
@@ -26,9 +35,9 @@ function NavLink({
         onClick();
         window.location.hash = href.split("#")[1] || "";
       }}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors cursor-pointer ${
+      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer ${
         active
-          ? "bg-muted text-foreground"
+          ? "bg-muted text-foreground border-l-4 border-primary pl-2"
           : "text-muted-foreground hover:text-foreground hover:bg-muted"
       }`}
     >
@@ -45,6 +54,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const { signOut, user, loading } = useAuth();
   const [active, setActive] = useState<string>("dashboard");
+  const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
   // Redirect recruiters to leaderboard
   useEffect(() => {
@@ -85,139 +95,205 @@ export default function DashboardLayout({
     <ProtectedRoute requireAuth={true} requireProfile={true}>
       <div className="min-h-screen bg-background dot-grid-bg">
         {/* Header */}
-        <header className="border-b-4 border-primary bg-background sticky top-0 z-50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
-                <span className="text-primary-foreground font-black text-xl">
-                  D
-                </span>
-              </div>
-              <span className="text-2xl font-black uppercase tracking-tight">
-                Cluefind
-              </span>
-            </Link>
-
+        <header className="border-b-4 border-primary bg-background sticky top-0 z-50 shadow-brutalist-sm">
+          <div className="container mx-auto px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/leaderboard" className="btn-outline">
+              <button
+                className="md:hidden btn-outline p-2.5 shadow-brutalist-sm"
+                aria-label="Open menu"
+                onClick={() => setMobileOpen(true)}
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <Link href="/dashboard" className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
+                  <span className="text-primary-foreground font-black text-xl">
+                    D
+                  </span>
+                </div>
+                <span className="text-xl font-black uppercase tracking-tight">
+                  Cluefind
+                </span>
+              </Link>
+            </div>
+
+            <div className="hidden md:flex items-center gap-3">
+              <Link
+                href="/leaderboard"
+                className="btn-outline text-sm font-bold uppercase tracking-wide shadow-brutalist-sm"
+              >
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Leaderboard
               </Link>
-              <button onClick={handleSignOut} className="btn-outline">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+              <button
+                onClick={handleSignOut}
+                className="btn-outline text-sm font-bold uppercase tracking-wide shadow-brutalist-sm"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </button>
+            </div>
+
+            {/* Mobile buttons */}
+            <div className="md:hidden flex items-center gap-2">
+              <Link
+                href="/leaderboard"
+                className="btn-outline p-2 shadow-brutalist-sm"
+                title="Leaderboard"
+              >
+                <BarChart3 className="w-4 h-4" />
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="btn-outline p-2 shadow-brutalist-sm"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
               </button>
             </div>
           </div>
         </header>
 
         <div className="flex">
+          {/* Overlay for mobile */}
+          {mobileOpen && (
+            <div
+              className="fixed inset-0 bg-black/40 z-30 md:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+          )}
           {/* Sidebar */}
-          <aside className="w-64 bg-card border-r-4 border-primary min-h-screen p-6">
-            <nav className="space-y-2">
+          <aside
+            className={`fixed inset-y-0 left-0 z-40 w-64 bg-background border-r p-4 transform transition-transform duration-200 md:static md:translate-x-0 md:min-h-screen ${
+              mobileOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            {/* Mobile header inside sidebar */}
+            <div className="flex items-center justify-between mb-4 md:hidden pb-3 border-b-2 border-primary">
+              <span className="font-bold uppercase tracking-wide text-sm">
+                Menu
+              </span>
+              <button
+                className="btn-outline p-2 shadow-brutalist-sm"
+                aria-label="Close menu"
+                onClick={() => setMobileOpen(false)}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <nav className="space-y-1">
               <NavLink
                 href="/dashboard"
                 active={active === "dashboard"}
-                onClick={() => setActive("dashboard")}
+                onClick={() => {
+                  setActive("dashboard");
+                  setMobileOpen(false);
+                }}
               >
-                <BarChart3 className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Dashboard
-                </span>
+                <BarChart3 className="w-4 h-4" />
+                <span className="font-medium text-sm">Dashboard</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#view-profile"
                 active={active === "view-profile"}
-                onClick={() => setActive("view-profile")}
+                onClick={() => {
+                  setActive("view-profile");
+                  setMobileOpen(false);
+                }}
               >
-                <User className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  View Profile
-                </span>
+                <User className="w-4 h-4" />
+                <span className="font-medium text-sm">View Profile</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#edit-profile"
                 active={active === "edit-profile"}
-                onClick={() => setActive("edit-profile")}
+                onClick={() => {
+                  setActive("edit-profile");
+                  setMobileOpen(false);
+                }}
               >
-                <User className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Edit Profile
-                </span>
+                <User className="w-4 h-4" />
+                <span className="font-medium text-sm">Edit Profile</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#resume"
                 active={active === "resume"}
-                onClick={() => setActive("resume")}
+                onClick={() => {
+                  setActive("resume");
+                  setMobileOpen(false);
+                }}
               >
-                <FileText className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Add Resume Content
-                </span>
+                <FileText className="w-4 h-4" />
+                <span className="font-medium text-sm">Add Resume Content</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#github"
                 active={active === "github"}
-                onClick={() => setActive("github")}
+                onClick={() => {
+                  setActive("github");
+                  setMobileOpen(false);
+                }}
               >
-                <Link2 className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Connect GitHub
-                </span>
+                <Link2 className="w-4 h-4" />
+                <span className="font-medium text-sm">Connect GitHub</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#skills"
                 active={active === "skills"}
-                onClick={() => setActive("skills")}
+                onClick={() => {
+                  setActive("skills");
+                  setMobileOpen(false);
+                }}
               >
-                <User className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Skills
-                </span>
+                <User className="w-4 h-4" />
+                <span className="font-medium text-sm">Skills</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#projects"
                 active={active === "projects"}
-                onClick={() => setActive("projects")}
+                onClick={() => {
+                  setActive("projects");
+                  setMobileOpen(false);
+                }}
               >
-                <FileText className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Projects Show Off
-                </span>
+                <FileText className="w-4 h-4" />
+                <span className="font-medium text-sm">Projects Show Off</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#social"
                 active={active === "social"}
-                onClick={() => setActive("social")}
+                onClick={() => {
+                  setActive("social");
+                  setMobileOpen(false);
+                }}
               >
-                <Link2 className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  Social Links
-                </span>
+                <Link2 className="w-4 h-4" />
+                <span className="font-medium text-sm">Social Links</span>
               </NavLink>
 
               <NavLink
                 href="/dashboard#ai"
                 active={active === "ai"}
-                onClick={() => setActive("ai")}
+                onClick={() => {
+                  setActive("ai");
+                  setMobileOpen(false);
+                }}
               >
-                <Brain className="w-5 h-5" />
-                <span className="font-bold uppercase text-sm tracking-wide">
-                  AI Review
-                </span>
+                <Brain className="w-4 h-4" />
+                <span className="font-medium text-sm">AI Review</span>
               </NavLink>
             </nav>
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 p-8">{children}</main>
+          <main className="flex-1 p-4 md:p-8">{children}</main>
         </div>
       </div>
     </ProtectedRoute>
