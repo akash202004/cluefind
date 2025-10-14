@@ -13,13 +13,13 @@ export class CloudinaryService {
    * Upload user profile image to Cloudinary
    * @param userId - User ID for database update
    * @param file - Image file to upload
-   * @param folder - Cloudinary folder (default: 'devsync/profile')
+   * @param folder - Cloudinary folder (default: 'cluefind/profile')
    * @returns Promise with image URL and updated user
    */
   async uploadUserImage(
     userId: string, 
     file: File, 
-    folder: string = "devsync/profile"
+    folder: string = "cluefind/profile"
   ) {
     try {
       // Validate file type
@@ -76,12 +76,12 @@ export class CloudinaryService {
   /**
    * Upload image without database update (for temporary storage)
    * @param file - Image file to upload
-   * @param folder - Cloudinary folder (default: 'devsync/temp')
+   * @param folder - Cloudinary folder (default: 'cluefind/temp')
    * @returns Promise with image URL
    */
   async uploadImage(
     file: File, 
-    folder: string = "devsync/temp"
+    folder: string = "cluefind/temp"
   ) {
     try {
       // Validate file type

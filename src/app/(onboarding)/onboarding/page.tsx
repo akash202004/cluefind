@@ -33,6 +33,32 @@ export default function OnboardingPage() {
   });
   const [loading, setLoading] = useState(false);
 
+  // Persist onboarding progress locally so refreshes don't lose state
+  useEffect(() => {
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem("onboarding-progress") : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          if (parsed.onboardingData) setOnboardingData(parsed.onboardingData);
+          if (parsed.currentStep) setCurrentStep(parsed.currentStep);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+      const payload = JSON.stringify({ onboardingData, currentStep });
+      localStorage.setItem("onboarding-progress", payload);
+      // Non-HTTP cookie fallback (expires in ~7 days)
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + 7);
+      document.cookie = `onboarding-progress=${encodeURIComponent(payload)}; expires=${expiry.toUTCString()}; path=/`;
+    } catch {}
+  }, [onboardingData, currentStep]);
+
   // Check authentication and profile status
   useEffect(() => {
     if (authLoading) return;
@@ -119,6 +145,14 @@ export default function OnboardingPage() {
 
       // Refresh user data to update hasProfile status
       await refreshUser();
+
+      // Clear persisted onboarding progress after successful completion
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("onboarding-progress");
+          document.cookie = `onboarding-progress=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+        }
+      } catch {}
       
       // Redirect based on role
       if (onboardingData.role === 'RECRUITER') {
@@ -177,7 +211,7 @@ export default function OnboardingPage() {
       <div className="max-w-2xl mx-auto">
         {/* Step Indicator */}
         <div className="text-center mb-8">
-          <h1 className="text-section mb-2">Welcome to DevSync!</h1>
+          <h1 className="text-section mb-2">Welcome to Cluefind!</h1>
           <p className="text-subtitle">
             Let&apos;s set up your developer portfolio in just a few steps
           </p>
@@ -498,7 +532,7 @@ function UsernameStep({
         </h2>
 
         <p className="text-body mb-6">
-          This will be your unique URL: devsync.com/yourusername
+          This will be your unique URL: cluefind.com/yourusername
         </p>
       </div>
 
@@ -538,7 +572,7 @@ function UsernameStep({
               <span className="text-muted-foreground">
                 Your profile will be:{" "}
               </span>
-              <span className="font-bold text-accent">devsync.com/{data}</span>
+              <span className="font-bold text-accent">cluefind.com/{data}</span>
             </div>
           )}
 

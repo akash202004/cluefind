@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     // Use unified Cloudinary service
     const cloudinaryService = new CloudinaryService();
-    const result = await cloudinaryService.uploadUserImage(userId, file, "devsync/profile");
+    const result = await cloudinaryService.uploadUserImage(userId, file, "cluefind/profile");
 
     return NextResponse.json({ 
       imageUrl: result.imageUrl,

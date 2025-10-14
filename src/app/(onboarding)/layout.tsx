@@ -25,7 +25,7 @@ function OnboardingContent({ children }: OnboardingLayoutProps) {
               </span>
             </div>
             <span className="text-2xl font-black uppercase tracking-tight">
-              DevSync
+              Cluefind
             </span>
           </Link>
 

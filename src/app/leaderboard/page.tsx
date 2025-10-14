@@ -83,7 +83,7 @@ export default function LeaderboardPage() {
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
               <span className="text-primary-foreground font-black text-xl">D</span>
             </div>
-            <span className="text-2xl font-black uppercase tracking-tight">DevSync</span>
+            <span className="text-2xl font-black uppercase tracking-tight">Cluefind</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
             <Link href="/#features" className="font-bold uppercase text-sm hover:text-accent transition-colors">
@@ -270,7 +270,7 @@ export default function LeaderboardPage() {
                 <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center border-4 border-background shadow-brutalist-sm">
                   <span className="text-primary font-black text-xl">D</span>
                 </div>
-                <span className="text-2xl font-black uppercase tracking-tight">DevSync</span>
+                <span className="text-2xl font-black uppercase tracking-tight">Cluefind</span>
               </div>
               <p className="text-sm opacity-80 leading-relaxed">
                 The ultimate platform for developer portfolios and skill endorsements.
@@ -315,7 +315,7 @@ export default function LeaderboardPage() {
             </div>
           </div>
           <div className="border-t-4 border-background pt-8 text-center text-sm">
-            <p className="mb-2 opacity-80">&copy; 2024 DevSync. All rights reserved.</p>
+            <p className="mb-2 opacity-80">&copy; 2024 Cluefind. All rights reserved.</p>
             <p className="flex items-center justify-center gap-2 flex-wrap">
               <span className="opacity-80">Built with 💪 by</span>
               <Link 

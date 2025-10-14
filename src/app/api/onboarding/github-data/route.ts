@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const githubResponse = await fetch(`https://api.github.com/users/${username}`, {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'DevSync-App'
+        'User-Agent': 'Cluefind-App'
       }
     });
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const reposResponse = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=10`, {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'DevSync-App'
+        'User-Agent': 'Cluefind-App'
       }
     });
 

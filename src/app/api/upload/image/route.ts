@@ -24,11 +24,11 @@ export async function POST(request: NextRequest) {
 
     // Upload image using Cloudinary service (temporary storage for onboarding)
     const cloudinaryService = new CloudinaryService();
-    const result = await cloudinaryService.uploadImage(file, 'devsync/onboarding');
+    const result = await cloudinaryService.uploadImage(file, 'cluefind/onboarding');
 
     console.log("Image uploaded to Cloudinary:", {
       imageUrl: result.imageUrl,
-      folder: 'devsync/onboarding'
+      folder: 'cluefind/onboarding'
     });
 
     return NextResponse.json({

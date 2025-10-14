@@ -27,24 +27,24 @@ export async function generateMetadata({ params }: PortfolioPageProps): Promise<
 
   if (!user) {
     return {
-      title: "User Not Found - DevSync",
+      title: "User Not Found - Cluefind",
       description: "The requested user profile could not be found.",
     };
   }
 
   return {
-    title: `${user.name || user.username} - DevSync Portfolio`,
-    description: user.bio || `View ${user.name || user.username}'s developer portfolio on DevSync`,
+    title: `${user.name || user.username} - Cluefind Portfolio`,
+    description: user.bio || `View ${user.name || user.username}'s developer portfolio on Cluefind`,
     openGraph: {
-      title: `${user.name || user.username} - DevSync Portfolio`,
-      description: user.bio || `View ${user.name || user.username}'s developer portfolio on DevSync`,
+      title: `${user.name || user.username} - Cluefind Portfolio`,
+      description: user.bio || `View ${user.name || user.username}'s developer portfolio on Cluefind`,
       images: user.image ? [user.image] : [],
       type: "profile",
     },
     twitter: {
       card: "summary",
-      title: `${user.name || user.username} - DevSync Portfolio`,
-      description: user.bio || `View ${user.name || user.username}'s developer portfolio on DevSync`,
+      title: `${user.name || user.username} - Cluefind Portfolio`,
+      description: user.bio || `View ${user.name || user.username}'s developer portfolio on Cluefind`,
       images: user.image ? [user.image] : [],
     },
   };
@@ -104,7 +104,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
               <span className="text-primary-foreground font-black text-xl">D</span>
             </div>
-            <span className="text-2xl font-black uppercase tracking-tight">DevSync</span>
+            <span className="text-2xl font-black uppercase tracking-tight">Cluefind</span>
           </Link>
           <div />
         </div>

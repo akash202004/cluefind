@@ -65,7 +65,7 @@ export class GitHubService {
     this.octokit = {} as Octokit;
     // this.octokit = new Octokit({
     //   auth: accessToken || process.env.GITHUB_TOKEN,
-    //   userAgent: 'DevSync Portfolio Platform'
+    //   userAgent: 'Cluefind Portfolio Platform'
     // })
   }
 

@@ -94,7 +94,7 @@ export default function DashboardLayout({
                 </span>
               </div>
               <span className="text-2xl font-black uppercase tracking-tight">
-                DevSync
+                Cluefind
               </span>
             </Link>
 
