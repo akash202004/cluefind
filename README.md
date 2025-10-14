@@ -23,7 +23,7 @@ A modern, full-stack developer portfolio platform with AI-powered features and s
 
 ## 📋 Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - PostgreSQL database
 - GitHub OAuth app
 - OpenAI API key
@@ -32,29 +32,35 @@ A modern, full-stack developer portfolio platform with AI-powered features and s
 ## 🚀 Getting Started
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd devsync
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp env.example .env.local
    ```
+
    Fill in your environment variables in `.env.local`
 
 4. **Set up the database**
+
    ```bash
    npx prisma generate
    npx prisma db push
    ```
 
 5. **Run the development server**
+
    ```bash
    npm run dev
    ```
@@ -62,19 +68,71 @@ A modern, full-stack developer portfolio platform with AI-powered features and s
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🔧 Environment Variables
+## � Docker Deployment
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `NEXTAUTH_URL` | Your app's URL |
-| `NEXTAUTH_SECRET` | Secret for NextAuth.js |
-| `GITHUB_CLIENT_ID` | GitHub OAuth client ID |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret |
-| `OPENAI_API_KEY` | OpenAI API key for AI features |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | Cloudinary API key |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
+### Method 1: Docker Compose (Recommended)
+
+1. **Create environment file**
+
+   ```bash
+   cp env.txt .env
+   ```
+
+2. **Build and run with Docker Compose**
+   ```bash
+   docker-compose up --build
+   ```
+
+### Method 2: Docker Build with Build Args
+
+1. **Build the Docker image**
+
+   ```bash
+   docker build \
+     --build-arg OPENAI_API_KEY="your-openai-key" \
+     --build-arg DATABASE_URL="your-db-url" \
+     --build-arg GOOGLE_CLIENT_ID="your-google-client-id" \
+     --build-arg GOOGLE_CLIENT_SECRET="your-google-client-secret" \
+     --build-arg GOOGLE_REDIRECT_URI="http://localhost:3000/api/auth/callback" \
+     --build-arg NEXT_PUBLIC_APP_URL="http://localhost:3000" \
+     --build-arg CLOUDINARY_CLOUD_NAME="your-cloudinary-name" \
+     --build-arg CLOUDINARY_API_KEY="your-cloudinary-key" \
+     --build-arg CLOUDINARY_API_SECRET="your-cloudinary-secret" \
+     --build-arg CLOUDINARY_UPLOAD_PRESET="your-upload-preset" \
+     -t devsync .
+   ```
+
+2. **Run the container**
+   ```bash
+   docker run -p 3000:3000 \
+     -e OPENAI_API_KEY="your-openai-key" \
+     -e DATABASE_URL="your-db-url" \
+     -e GOOGLE_CLIENT_ID="your-google-client-id" \
+     -e GOOGLE_CLIENT_SECRET="your-google-client-secret" \
+     -e GOOGLE_REDIRECT_URI="http://localhost:3000/api/auth/callback" \
+     -e NEXT_PUBLIC_APP_URL="http://localhost:3000" \
+     -e CLOUDINARY_CLOUD_NAME="your-cloudinary-name" \
+     -e CLOUDINARY_API_KEY="your-cloudinary-key" \
+     -e CLOUDINARY_API_SECRET="your-cloudinary-secret" \
+     -e CLOUDINARY_UPLOAD_PRESET="your-upload-preset" \
+     devsync
+   ```
+
+**Note**: The application includes fallback behavior for missing OpenAI API keys during build time, so the build will not fail if the key is not provided.
+
+## �🔧 Environment Variables
+
+| Variable                | Description                    |
+| ----------------------- | ------------------------------ |
+| `DATABASE_URL`          | PostgreSQL connection string   |
+| `NEXTAUTH_URL`          | Your app's URL                 |
+| `NEXTAUTH_SECRET`       | Secret for NextAuth.js         |
+| `GITHUB_CLIENT_ID`      | GitHub OAuth client ID         |
+| `GITHUB_CLIENT_SECRET`  | GitHub OAuth client secret     |
+| `OPENAI_API_KEY`        | OpenAI API key for AI features |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name          |
+| `CLOUDINARY_API_KEY`    | Cloudinary API key             |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret          |
 
 ## 📁 Project Structure
 
@@ -131,6 +189,7 @@ The application uses PostgreSQL with Prisma ORM. Key models include:
 ### Manual Deployment
 
 1. Build the application
+
    ```bash
    npm run build
    ```

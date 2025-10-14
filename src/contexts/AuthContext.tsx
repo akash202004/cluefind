@@ -54,25 +54,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("AuthContext received user data:", userData);
         setUser(userData);
 
-        // Only check profile if user has googleId and we haven't checked for this user yet
-        if (
-          userData?.googleId &&
-          profileCheckRef.current !== userData.googleId
-        ) {
+        if (userData?.googleId) {
           checkProfile(userData.googleId);
-        } else if (!userData?.googleId) {
+        } else {
           setHasProfile(false);
         }
       } else {
         setUser(null);
         setHasProfile(false);
-        profileCheckRef.current = null;
       }
     } catch (error) {
       console.error("Auth check error:", error);
       setUser(null);
       setHasProfile(false);
-      profileCheckRef.current = null;
     } finally {
       setLoading(false);
     }
@@ -114,7 +108,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (user?.googleId) {
       // Reset the ref to force a fresh check
       profileCheckRef.current = null;
-      setHasProfile(null); // Reset to loading state
       await checkProfile(user.googleId);
     }
   };
