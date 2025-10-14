@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
           image: true,
           googleId: true,
           username: true,
+          role: true,
         }
       });
       

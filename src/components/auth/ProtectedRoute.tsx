@@ -42,7 +42,12 @@ const ProtectedRoute = ({
   }
 
   // If profile is required and user doesn't have one, redirect to onboarding
+  // Exception: Recruiters don't need profiles, they get redirected to leaderboard
   if (requireProfile && hasProfile === false) {
+    if (user?.role === 'RECRUITER') {
+      router.push("/leaderboard");
+      return null;
+    }
     router.push("/onboarding");
     return null;
   }

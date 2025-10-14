@@ -1,61 +1,79 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Trophy, Heart, TrendingUp, Github, Linkedin, ArrowLeft } from "lucide-react";
 
-// Mock data - will be replaced with real data from database
-const leaderboardData = [
-  {
-    id: 1,
-    rank: 1,
-    username: "codewizard",
-    name: "Alex Chen",
-    vouches: 23,
-    skills: ["React", "TypeScript", "Node.js"],
-    avatar: "AC",
-    color: "bg-feature-purple",
-  },
-  {
-    id: 2,
-    rank: 2,
-    username: "devmaster",
-    name: "Sarah Johnson",
-    vouches: 19,
-    skills: ["Next.js", "Python", "AWS"],
-    avatar: "SJ",
-    color: "bg-feature-blue",
-  },
-  {
-    id: 3,
-    rank: 3,
-    username: "techguru",
-    name: "Mike Williams",
-    vouches: 16,
-    skills: ["Go", "Docker", "Kubernetes"],
-    avatar: "MW",
-    color: "bg-feature-yellow",
-  },
-  {
-    id: 4,
-    rank: 4,
-    username: "codeninj a",
-    name: "Emma Davis",
-    vouches: 14,
-    skills: ["Vue.js", "GraphQL", "MongoDB"],
-    avatar: "ED",
-    color: "bg-feature-green",
-  },
-  {
-    id: 5,
-    rank: 5,
-    username: "fullstack",
-    name: "David Lee",
-    vouches: 12,
-    skills: ["Ruby", "Rails", "PostgreSQL"],
-    avatar: "DL",
-    color: "bg-feature-red",
-  },
-];
+interface Student {
+  id: string;
+  username: string;
+  name: string;
+  bio?: string;
+  image?: string;
+  skills: string[];
+  vouchCount: number;
+  repoCount: number;
+}
+
+interface LeaderboardData {
+  students: Student[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 
 export default function LeaderboardPage() {
+  const [data, setData] = useState<LeaderboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    fetchLeaderboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  const fetchLeaderboard = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/leaderboard?page=${page}&limit=20`);
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        setData({
+          students: result.data,
+          pagination: result.pagination,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getColorForRank = (index: number) => {
+    const colors = [
+      "bg-feature-yellow",
+      "bg-feature-blue",
+      "bg-feature-purple",
+      "bg-feature-green",
+      "bg-feature-red",
+    ];
+    return colors[index % colors.length] || "bg-muted";
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -112,100 +130,153 @@ export default function LeaderboardPage() {
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
           <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">1,234</div>
+            <div className="text-3xl font-black mb-2">{data?.pagination.total || 0}</div>
             <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Developers</div>
           </div>
           <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">5,678</div>
+            <div className="text-3xl font-black mb-2">
+              {data?.students.reduce((acc, s) => acc + s.vouchCount, 0) || 0}
+            </div>
             <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Vouches</div>
           </div>
           <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">892</div>
-            <div className="text-sm uppercase tracking-wide text-muted-foreground">Active This Week</div>
+            <div className="text-3xl font-black mb-2">
+              {data?.students.reduce((acc, s) => acc + s.repoCount, 0) || 0}
+            </div>
+            <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Repos</div>
           </div>
         </div>
 
         {/* Leaderboard List */}
-        <div className="max-w-4xl mx-auto space-y-4">
-          {leaderboardData.map((dev, index) => (
-            <div 
-              key={dev.id} 
-              className={`card-brutalist hover:translate-x-0 hover:translate-y-0 hover:shadow-brutalist-lg transition-all ${
-                index === 0 ? "bg-accent/10" : ""
-              }`}
-            >
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                {/* Rank */}
-                <div className="flex items-center gap-4">
-                  <div className={`w-16 h-16 flex items-center justify-center border-4 border-primary rounded-lg shadow-brutalist-sm font-black text-2xl ${
-                    index === 0 ? "bg-feature-yellow" :
-                    index === 1 ? "bg-feature-blue" :
-                    index === 2 ? "bg-feature-purple" :
-                    "bg-muted"
-                  }`}>
-                    {dev.rank === 1 && <Trophy className="w-8 h-8" />}
-                    {dev.rank !== 1 && `#${dev.rank}`}
-                  </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading leaderboard...</p>
+          </div>
+        ) : data?.students && data.students.length > 0 ? (
+          <div className="max-w-4xl mx-auto space-y-4">
+            {data.students.map((student, index) => {
+              const rank = (page - 1) * 20 + index + 1;
+              return (
+                <div 
+                  key={student.id} 
+                  className={`card-brutalist hover:translate-x-0 hover:translate-y-0 hover:shadow-brutalist-lg transition-all ${
+                    rank === 1 ? "bg-accent/10" : ""
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                    {/* Rank */}
+                    <div className="flex items-center gap-4">
+                      <div className={`w-16 h-16 flex items-center justify-center border-4 border-primary rounded-lg shadow-brutalist-sm font-black text-2xl ${
+                        rank === 1 ? "bg-feature-yellow" :
+                        rank === 2 ? "bg-feature-blue" :
+                        rank === 3 ? "bg-feature-purple" :
+                        "bg-muted"
+                      }`}>
+                        {rank === 1 && <Trophy className="w-8 h-8" />}
+                        {rank !== 1 && `#${rank}`}
+                      </div>
 
-                  {/* Avatar */}
-                  <div className={`w-16 h-16 flex items-center justify-center border-4 border-primary rounded-lg shadow-brutalist-sm font-black text-xl ${dev.color}`}>
-                    {dev.avatar}
-                  </div>
-                </div>
-
-                {/* Info */}
-                <div className="flex-1">
-                  <Link 
-                    href={`/${dev.username}`} 
-                    className="text-xl font-black uppercase hover:text-accent transition-colors"
-                  >
-                    {dev.name}
-                  </Link>
-                  <p className="text-sm text-muted-foreground">@{dev.username}</p>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {dev.skills.map((skill) => (
-                      <span 
-                        key={skill} 
-                        className="px-3 py-1 bg-muted border-2 border-primary rounded text-xs font-bold uppercase"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Vouches */}
-                <div className="flex items-center gap-2">
-                  <div className="stat-box bg-primary text-primary-foreground">
-                    <div className="flex items-center gap-2">
-                      <Heart className="w-6 h-6 fill-accent text-accent" />
-                      <span className="text-2xl font-black">{dev.vouches.toLocaleString()}</span>
+                      {/* Avatar */}
+                      <div className={`w-16 h-16 flex items-center justify-center border-4 border-primary rounded-lg shadow-brutalist-sm font-black text-xl overflow-hidden ${getColorForRank(index)}`}>
+                        {student.image ? (
+                          <Image
+                            src={student.image}
+                            alt={student.name}
+                            width={64}
+                            height={64}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          getInitials(student.name)
+                        )}
+                      </div>
                     </div>
-                    <div className="text-xs uppercase tracking-wide opacity-80 mt-1">Vouches</div>
+
+                    {/* Info */}
+                    <div className="flex-1">
+                      <Link 
+                        href={`/${student.username}`} 
+                        className="text-xl font-black uppercase hover:text-accent transition-colors"
+                      >
+                        {student.name}
+                      </Link>
+                      <p className="text-sm text-muted-foreground">@{student.username}</p>
+                      {student.bio && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{student.bio}</p>
+                      )}
+                      {student.skills.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {student.skills.slice(0, 5).map((skill) => (
+                            <span 
+                              key={skill} 
+                              className="px-3 py-1 bg-muted border-2 border-primary rounded text-xs font-bold uppercase"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                          {student.skills.length > 5 && (
+                            <span className="px-3 py-1 text-xs font-bold text-muted-foreground">
+                              +{student.skills.length - 5} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Vouches */}
+                    <div className="flex items-center gap-2">
+                      <div className="stat-box bg-primary text-primary-foreground">
+                        <div className="flex items-center gap-2">
+                          <Heart className="w-6 h-6 fill-accent text-accent" />
+                          <span className="text-2xl font-black">{student.vouchCount}</span>
+                        </div>
+                        <div className="text-xs uppercase tracking-wide opacity-80 mt-1">Vouches</div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col gap-2">
+                      <Link 
+                        href={`/${student.username}`}
+                        className="btn-outline text-xs px-3 py-2"
+                      >
+                        View Profile
+                      </Link>
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No student profiles found.</p>
+          </div>
+        )}
 
-                {/* Actions */}
-                <div className="flex flex-col gap-2">
-                  <Link 
-                    href={`/${dev.username}`}
-                    className="btn-outline text-xs px-3 py-2"
-                  >
-                    View Profile
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Load More */}
-        <div className="text-center mt-12">
-          <button className="btn-secondary">
-            <TrendingUp className="w-5 h-5 inline mr-2" />
-            Load More
-          </button>
-        </div>
+        {/* Pagination */}
+        {data && data.pagination.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mt-12">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <span className="text-sm font-bold">
+              Page {page} of {data.pagination.totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
+              disabled={page === data.pagination.totalPages}
+              className="btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </main>
 
       {/* Footer */}

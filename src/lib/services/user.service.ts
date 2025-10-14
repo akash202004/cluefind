@@ -155,6 +155,65 @@ export class UserService {
     }
   }
 
+  async getAllStudentProfiles(page = 1, limit = 20) {
+    try {
+      const skip = (page - 1) * limit;
+
+      // Only get users with STUDENT role and profiles
+      const [students, total] = await Promise.all([
+        db.user.findMany({
+          where: {
+            role: 'STUDENT',
+            profile: {
+              isNot: null,
+            },
+          },
+          skip,
+          take: limit,
+          include: {
+            profile: {
+              include: {
+                _count: {
+                  select: {
+                    vouches: true,
+                    repos: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            profile: {
+              vouches: {
+                _count: 'desc',
+              },
+            },
+          },
+        }),
+        db.user.count({
+          where: {
+            role: 'STUDENT',
+            profile: {
+              isNot: null,
+            },
+          },
+        }),
+      ]);
+
+      return {
+        students,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async deleteUser(googleId: string) {
     try {
       await db.user.delete({
@@ -261,9 +320,10 @@ export class UserService {
   async completeOnboarding(
     googleId: string,
     onboardingData: {
-      profileImage: string;
-      username: string;
-      bio: string;
+      role: 'STUDENT' | 'RECRUITER';
+      profileImage?: string;
+      username?: string;
+      bio?: string;
       name?: string;
     }
   ) {
@@ -277,40 +337,58 @@ export class UserService {
         throw new Error("User not found. Please sign in again.");
       }
 
-      // Check if username is taken on User table
-      const existingUserWithUsername = await db.user.findUnique({
-        where: { username: onboardingData.username },
-      });
+      // For students, validate username uniqueness
+      if (onboardingData.role === 'STUDENT' && onboardingData.username) {
+        const existingUserWithUsername = await db.user.findUnique({
+          where: { username: onboardingData.username },
+        });
 
-      if (existingUserWithUsername && existingUserWithUsername.id !== existingUser.id) {
-        throw new Error("Username already taken");
+        if (existingUserWithUsername && existingUserWithUsername.id !== existingUser.id) {
+          throw new Error("Username already taken");
+        }
       }
 
       // Update user and create profile in a transaction
       const result = await db.$transaction(async (tx) => {
-        // Update user
-        const user = await tx.user.update({
-          where: { googleId },
-          data: {
-            name: onboardingData.name || onboardingData.username,
-            username: onboardingData.username,
-            bio: onboardingData.bio,
-            image: onboardingData.profileImage,
-            onboardingComplete: true,
-          },
-        });
+        // For students: update with full profile data
+        if (onboardingData.role === 'STUDENT') {
+          const user = await tx.user.update({
+            where: { googleId },
+            data: {
+              role: 'STUDENT',
+              name: onboardingData.name || onboardingData.username,
+              username: onboardingData.username!,
+              bio: onboardingData.bio!,
+              image: onboardingData.profileImage!,
+              onboardingComplete: true,
+            },
+          });
 
-        // Create profile (without username/bio as they are on User)
-        const profile = await tx.profile.upsert({
-          where: { userId: user.id },
-          update: {},
-          create: {
-            userId: user.id,
-            skills: [],
-          },
-        });
+          // Create profile for students
+          const profile = await tx.profile.upsert({
+            where: { userId: user.id },
+            update: {},
+            create: {
+              userId: user.id,
+              skills: [],
+            },
+          });
 
-        return { user, profile };
+          return { user, profile };
+        } 
+        // For recruiters: minimal update, no profile
+        else {
+          const user = await tx.user.update({
+            where: { googleId },
+            data: {
+              role: 'RECRUITER',
+              username: onboardingData.username || existingUser.username,
+              onboardingComplete: true,
+            },
+          });
+
+          return { user, profile: null };
+        }
       });
 
       return result;

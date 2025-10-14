@@ -15,6 +15,7 @@ import ClientOnly from "@/components/ui/ClientOnly";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface OnboardingData {
+  role: 'STUDENT' | 'RECRUITER' | null;
   profileImage: string | null;
   username: string;
   bio: string;
@@ -25,6 +26,7 @@ export default function OnboardingPage() {
   const { user, loading: authLoading, hasProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
+    role: null,
     profileImage: null,
     username: "",
     bio: "",
@@ -47,7 +49,13 @@ export default function OnboardingPage() {
   }, [user, hasProfile, authLoading, router]);
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    // If user is recruiter, skip to completion after step 1
+    if (currentStep === 1 && onboardingData.role === 'RECRUITER') {
+      handleComplete();
+      return;
+    }
+    
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
       // Complete onboarding
@@ -68,13 +76,20 @@ export default function OnboardingPage() {
         throw new Error("No authenticated user");
       }
 
-      // Validate required fields
-      if (
-        !onboardingData.profileImage ||
-        !onboardingData.username ||
-        !onboardingData.bio
-      ) {
-        throw new Error("All fields are required");
+      // Validate required fields based on role
+      if (!onboardingData.role) {
+        throw new Error("Please select a role");
+      }
+
+      // For students, require all fields
+      if (onboardingData.role === 'STUDENT') {
+        if (
+          !onboardingData.profileImage ||
+          !onboardingData.username ||
+          !onboardingData.bio
+        ) {
+          throw new Error("All fields are required for student profile");
+        }
       }
 
       // Create user and profile in Prisma database
@@ -84,6 +99,7 @@ export default function OnboardingPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          role: onboardingData.role,
           profileImage: onboardingData.profileImage,
           username: onboardingData.username,
           bio: onboardingData.bio,
@@ -101,7 +117,12 @@ export default function OnboardingPage() {
       const result = await response.json();
       console.log("Onboarding completed:", result);
 
-      router.push("/dashboard");
+      // Redirect based on role
+      if (onboardingData.role === 'RECRUITER') {
+        router.push("/leaderboard");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (error: any) {
       console.error("Error completing onboarding:", error);
       alert(`Failed to complete onboarding: ${error.message}`);
@@ -120,10 +141,12 @@ export default function OnboardingPage() {
   const isStepComplete = (step: number) => {
     switch (step) {
       case 1:
-        return onboardingData.profileImage !== null;
+        return onboardingData.role !== null;
       case 2:
-        return onboardingData.username.length > 0;
+        return onboardingData.profileImage !== null;
       case 3:
+        return onboardingData.username.length > 0;
+      case 4:
         const wordCount = Math.ceil(onboardingData.bio.length / 5);
         return onboardingData.bio.length > 0 && wordCount <= 30;
       default:
@@ -160,20 +183,27 @@ export default function OnboardingPage() {
         {/* Step Content */}
         <div className="card-brutalist mb-8">
           {currentStep === 1 && (
+            <RoleSelectionStep
+              data={onboardingData.role}
+              onUpdate={(value) => updateData("role", value as 'STUDENT' | 'RECRUITER')}
+            />
+          )}
+
+          {currentStep === 2 && (
             <ProfileImageStep
               data={onboardingData.profileImage}
               onUpdate={(value) => updateData("profileImage", value)}
             />
           )}
 
-          {currentStep === 2 && (
+          {currentStep === 3 && (
             <UsernameStep
               data={onboardingData.username}
               onUpdate={(value) => updateData("username", value)}
             />
           )}
 
-          {currentStep === 3 && (
+          {currentStep === 4 && (
             <BioStep
               data={onboardingData.bio}
               onUpdate={(value) => updateData("bio", value)}
@@ -192,18 +222,22 @@ export default function OnboardingPage() {
           </button>
 
           <div className="flex items-center space-x-2">
-            {[1, 2, 3].map((step) => (
-              <div
-                key={step}
-                className={`w-3 h-3 rounded-full border-2 ${
-                  step === currentStep
-                    ? "bg-accent border-accent"
-                    : step < currentStep
-                    ? "bg-feature-green border-feature-green"
-                    : "bg-muted border-primary"
-                }`}
-              />
-            ))}
+            {onboardingData.role === 'STUDENT' ? (
+              [1, 2, 3, 4].map((step) => (
+                <div
+                  key={step}
+                  className={`w-3 h-3 rounded-full border-2 ${
+                    step === currentStep
+                      ? "bg-accent border-accent"
+                      : step < currentStep
+                      ? "bg-feature-green border-feature-green"
+                      : "bg-muted border-primary"
+                  }`}
+                />
+              ))
+            ) : (
+              <div className="w-3 h-3 rounded-full border-2 bg-accent border-accent" />
+            )}
           </div>
 
           <button
@@ -211,7 +245,7 @@ export default function OnboardingPage() {
             disabled={!isStepComplete(currentStep)}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {currentStep === 3 ? "Complete Setup" : "Next"}
+            {(currentStep === 4 && onboardingData.role === 'STUDENT') || (currentStep === 1 && onboardingData.role === 'RECRUITER') ? "Complete Setup" : "Next"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </button>
         </div>
@@ -220,8 +254,74 @@ export default function OnboardingPage() {
   );
 }
 
+// Step 1: Role Selection
+function RoleSelectionStep({
+  data,
+  onUpdate,
+}: {
+  data: 'STUDENT' | 'RECRUITER' | null;
+  onUpdate: (value: string) => void;
+}) {
+  return (
+    <div className="text-center">
+      <div className="icon-box-purple mx-auto mb-6">
+        <User className="w-8 h-8 text-primary" />
+      </div>
 
-// Step 1: Profile Image Upload
+      <h2 className="text-xl font-black uppercase tracking-wide mb-4">
+        Choose Your Role
+      </h2>
+
+      <p className="text-body mb-6">
+        Are you a student looking to build your portfolio or a recruiter looking for talent?
+      </p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        {/* Student Option */}
+        <button
+          onClick={() => onUpdate('STUDENT')}
+          className={`p-6 border-4 rounded-lg transition-all ${
+            data === 'STUDENT'
+              ? 'border-accent bg-accent/10 shadow-brutalist-lg'
+              : 'border-primary bg-background hover:shadow-brutalist-md'
+          }`}
+        >
+          <div className="icon-box-blue mx-auto mb-4">
+            <User className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="text-lg font-black uppercase tracking-wide mb-2">
+            Student / Developer
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Create your portfolio, showcase your projects, and get endorsed by peers
+          </p>
+        </button>
+
+        {/* Recruiter Option */}
+        <button
+          onClick={() => onUpdate('RECRUITER')}
+          className={`p-6 border-4 rounded-lg transition-all ${
+            data === 'RECRUITER'
+              ? 'border-accent bg-accent/10 shadow-brutalist-lg'
+              : 'border-primary bg-background hover:shadow-brutalist-md'
+          }`}
+        >
+          <div className="icon-box-purple mx-auto mb-4">
+            <FileText className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="text-lg font-black uppercase tracking-wide mb-2">
+            Recruiter / Company
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Browse student portfolios and discover talented developers
+          </p>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Step 2 (Students only): Profile Image Upload
 function ProfileImageStep({
   data,
   onUpdate,
@@ -339,7 +439,7 @@ function ProfileImageStep({
   );
 }
 
-// Step 2: Username Setup
+// Step 3 (Students only): Username Setup
 function UsernameStep({
   data,
   onUpdate,
@@ -450,7 +550,7 @@ function UsernameStep({
   );
 }
 
-// Step 3: Bio
+// Step 4 (Students only): Bio
 function BioStep({
   data,
   onUpdate,

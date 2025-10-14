@@ -33,13 +33,25 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { signOut } = useAuth();
+  const { signOut, user, loading } = useAuth();
   const [active, setActive] = useState<string>("dashboard");
+
+  // Redirect recruiters to leaderboard
+  useEffect(() => {
+    if (!loading && user?.role === 'RECRUITER') {
+      router.push('/leaderboard');
+    }
+  }, [user, loading, router]);
 
   const handleSignOut = async () => {
     await signOut();
     router.push("/get-started");
   };
+
+  // Don't render dashboard for recruiters
+  if (user?.role === 'RECRUITER') {
+    return null;
+  }
 
   useEffect(() => {
     const updateActive = () => {
