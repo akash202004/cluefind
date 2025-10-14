@@ -122,6 +122,8 @@ export default function DashboardLayout({
               {user?.username && (
                 <Link
                   href={`/${user.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="btn-outline text-sm font-bold uppercase tracking-wide shadow-brutalist-sm"
                 >
                   <User className="w-4 h-4 mr-2" />
@@ -149,6 +151,8 @@ export default function DashboardLayout({
               {user?.username && (
                 <Link
                   href={`/${user.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="btn-outline p-2 shadow-brutalist-sm"
                   title="View Profile"
                 >

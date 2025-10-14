@@ -102,7 +102,7 @@ export default function LeaderboardPage() {
                   <Link href="/dashboard" className="btn-outline text-sm px-4 py-2">Dashboard</Link>
                 )}
                 {user.username && user.role !== "RECRUITER" && (
-                  <Link href={`/${user.username}`} className="btn-outline text-sm px-4 py-2">My Profile</Link>
+                  <Link href={`/${user.username}`} target="_blank" rel="noopener noreferrer" className="btn-outline text-sm px-4 py-2">My Profile</Link>
                 )}
                 <button onClick={signOut} className="btn-secondary text-sm px-4 py-2">Sign Out</button>
               </>
@@ -193,6 +193,8 @@ export default function LeaderboardPage() {
                     <div className="flex-1">
                       <Link 
                         href={`/${student.username}`} 
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-xl font-black uppercase hover:text-accent transition-colors"
                       >
                         {student.name}
@@ -235,6 +237,8 @@ export default function LeaderboardPage() {
                     <div className="flex flex-col gap-2">
                       <Link 
                         href={`/${student.username}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="btn-outline text-xs px-3 py-2"
                       >
                         View Profile

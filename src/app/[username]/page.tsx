@@ -202,7 +202,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
                   ) : null}
                   <div className="mt-auto">
                     {project.url ? (
-                      <Link href={project.url} className="btn-outline inline-flex items-center">
+                      <Link href={project.url} target="_blank" rel="noopener noreferrer" className="btn-outline inline-flex items-center">
                         <ExternalLink className="w-4 h-4 mr-2" /> View Project
                       </Link>
                     ) : null}
