@@ -35,6 +35,9 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/public ./public
 
+# Remove caches and unnecessary stuff
+RUN rm -rf /app/.next/cache /root/.npm /usr/share/man /tmp/* /var/tmp/*
+
 # Create non-root user for security
 RUN addgroup -S nodejs && adduser -S nextjs -G nodejs
 RUN chown -R nextjs:nodejs /app
