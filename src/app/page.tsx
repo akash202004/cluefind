@@ -1,9 +1,48 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Brain, Users, Zap, Target, Calendar, TrendingUp, Github, Linkedin, ArrowRight, Play } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import ClientOnly from "@/components/ui/ClientOnly";
 
 export default function HomePage() {
+  const router = useRouter();
+  const { user, loading: authLoading, hasProfile } = useAuth();
+
+  // Redirect authenticated users with completed onboarding to dashboard
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (user && hasProfile === true) {
+      router.push("/dashboard");
+      return;
+    }
+  }, [user, hasProfile, authLoading, router]);
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <ClientOnly>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </ClientOnly>
+    );
+  }
+
+  // Don't render landing page if user should be redirected
+  if (user && hasProfile === true) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-background dot-grid-bg">
+    <ClientOnly>
+      <div className="min-h-screen bg-background dot-grid-bg">
       {/* Header */}
       <header className="border-b-4 border-primary bg-background sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -14,18 +53,38 @@ export default function HomePage() {
             <span className="text-2xl font-black uppercase tracking-tight">DevSync</span>
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="#features" className="font-bold uppercase text-sm hover:text-accent transition-colors">
-              Features
-            </Link>
-            <Link href="#how-it-works" className="font-bold uppercase text-sm hover:text-accent transition-colors">
-              How it Works
-            </Link>
-            <Link href="/leaderboard" className="font-bold uppercase text-sm hover:text-accent transition-colors">
-              Leaderboard
-            </Link>
-            <Link href="/get-started" className="btn-primary text-sm px-4 py-2">
-              Get Started
-            </Link>
+            {user ? (
+              // Authenticated user navigation
+              <>
+                <Link href="/dashboard" className="font-bold uppercase text-sm hover:text-accent transition-colors">
+                  Dashboard
+                </Link>
+                <Link href="/leaderboard" className="font-bold uppercase text-sm hover:text-accent transition-colors">
+                  Leaderboard
+                </Link>
+                {user.username && (
+                  <Link href={`/${user.username}`} className="font-bold uppercase text-sm hover:text-accent transition-colors">
+                    My Profile
+                  </Link>
+                )}
+              </>
+            ) : (
+              // Guest user navigation
+              <>
+                <Link href="#features" className="font-bold uppercase text-sm hover:text-accent transition-colors">
+                  Features
+                </Link>
+                <Link href="#how-it-works" className="font-bold uppercase text-sm hover:text-accent transition-colors">
+                  How it Works
+                </Link>
+                <Link href="/leaderboard" className="font-bold uppercase text-sm hover:text-accent transition-colors">
+                  Leaderboard
+                </Link>
+                <Link href="/get-started" className="btn-primary text-sm px-4 py-2">
+                  Get Started
+                </Link>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -62,14 +121,33 @@ export default function HomePage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16 animate-slide-in-up" style={{animationDelay: "0.3s"}}>
-            <Link href="/get-started" className="btn-primary inline-flex items-center gap-2">
-              Get Started
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <button className="btn-secondary inline-flex items-center gap-2">
-              <Play className="w-5 h-5" />
-              Watch Demo
-            </button>
+            {user ? (
+              // Authenticated user CTAs
+              <>
+                <Link href="/dashboard" className="btn-primary inline-flex items-center gap-2">
+                  Go to Dashboard
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                {user.username && (
+                  <Link href={`/${user.username}`} className="btn-secondary inline-flex items-center gap-2">
+                    View My Profile
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                )}
+              </>
+            ) : (
+              // Guest user CTAs
+              <>
+                <Link href="/get-started" className="btn-primary inline-flex items-center gap-2">
+                  Get Started
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <button className="btn-secondary inline-flex items-center gap-2">
+                  <Play className="w-5 h-5" />
+                  Watch Demo
+                </button>
+              </>
+            )}
           </div>
 
           {/* Stats */}
@@ -273,6 +351,7 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </ClientOnly>
   );
 }

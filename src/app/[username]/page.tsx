@@ -1,12 +1,52 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Github, Linkedin, Mail } from "lucide-react";
+import Image from "next/image";
+import { Github, Linkedin, Mail, ExternalLink } from "lucide-react";
 import { db } from "@/lib/db";
+import type { Metadata } from "next";
 
 interface PortfolioPageProps {
   params: Promise<{
     username: string;
   }>;
+}
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: PortfolioPageProps): Promise<Metadata> {
+  const { username } = await params;
+  const user = await db.user.findUnique({
+    where: { username },
+    select: {
+      name: true,
+      username: true,
+      bio: true,
+      image: true,
+    },
+  });
+
+  if (!user) {
+    return {
+      title: "User Not Found - DevSync",
+      description: "The requested user profile could not be found.",
+    };
+  }
+
+  return {
+    title: `${user.name || user.username} - DevSync Portfolio`,
+    description: user.bio || `View ${user.name || user.username}'s developer portfolio on DevSync`,
+    openGraph: {
+      title: `${user.name || user.username} - DevSync Portfolio`,
+      description: user.bio || `View ${user.name || user.username}'s developer portfolio on DevSync`,
+      images: user.image ? [user.image] : [],
+      type: "profile",
+    },
+    twitter: {
+      card: "summary",
+      title: `${user.name || user.username} - DevSync Portfolio`,
+      description: user.bio || `View ${user.name || user.username}'s developer portfolio on DevSync`,
+      images: user.image ? [user.image] : [],
+    },
+  };
 }
 
 export default async function PortfolioPage({ params }: PortfolioPageProps) {
@@ -61,9 +101,20 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         <section className="text-center mb-12">
           <div className="w-32 h-32 bg-accent rounded-full border-4 border-primary shadow-brutalist-lg mx-auto mb-6 overflow-hidden">
             {user.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.image} alt={user.name || user.username} className="w-full h-full object-cover" />
-            ) : null}
+              <Image 
+                src={user.image} 
+                alt={user.name || user.username} 
+                width={128}
+                height={128}
+                className="w-full h-full object-cover" 
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center">
+                <span className="text-4xl font-black text-muted-foreground">
+                  {(user.name || user.username).charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
           </div>
           <h1 className="text-hero mb-4">{user.name || user.username}</h1>
           <p className="text-body max-w-2xl mx-auto mb-6">{user.bio || ""}</p>
@@ -83,7 +134,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
                 ) : link.platform.toLowerCase().includes("mail") || link.platform.toLowerCase().includes("email") ? (
                   <Mail className="w-6 h-6" />
                 ) : (
-                  <ExternalLinkIcon />
+                  <ExternalLink className="w-6 h-6" />
                 )}
               </Link>
             ))}
@@ -214,13 +265,3 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
 // Enable ISR (Incremental Static Regeneration)
 export const revalidate = 300;
 
-function ExternalLinkIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M14 3h7v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M21 14v7h-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M3 10h7V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
