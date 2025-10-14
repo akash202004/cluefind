@@ -20,10 +20,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t yourusername/yourapp:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/full-stack-assignment:latest .
 
       - name: Push to DockerHub
-        run: docker push yourusername/yourapp:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/full-stack-assignment:latest
 
       - name: SSH to EC2 and update container
         uses: appleboy/ssh-action@v1.1.0
@@ -32,7 +32,16 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull yourusername/yourapp:latest
-            docker stop yourapp || true
-            docker rm yourapp || true
-            docker run -d -p 3000:3000 --name yourapp yourusername/yourapp:latest
+            # Pull latest image
+            docker pull ${{ secrets.DOCKER_USERNAME }}/full-stack-assignment:latest
+            
+            # Stop and remove old container (ignore errors if not exist)
+            docker stop full-stack-assignment || true
+            docker rm full-stack-assignment || true
+            
+            # Run new container and use .env from EC2
+            docker run -d -p 3000:3000 \
+              --name full-stack-assignment \
+              --env-file /home/ubuntu/full-stack-assignment/.env \
+              --restart unless-stopped \
+              ${{ secrets.DOCKER_USERNAME }}/full-stack-assignment:latest

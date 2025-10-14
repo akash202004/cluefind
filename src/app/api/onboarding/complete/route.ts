@@ -3,13 +3,8 @@ import { UserService } from "@/lib/services/user.service";
 
 export async function POST(request: NextRequest) {
   try {
-    const {
-      profileImage,
-      username,
-      bio,
-      googleId,
-      name,
-    } = await request.json();
+    const { profileImage, username, bio, googleId, name } =
+      await request.json();
 
     // Validate required fields
     if (!profileImage || !username || !bio || !googleId) {
@@ -32,7 +27,7 @@ export async function POST(request: NextRequest) {
       success: true,
       userId: result.user.id,
       profileId: result.profile.id,
-      username: result.profile.username,
+      username: result.user.username,
       message: "Onboarding completed successfully",
     });
   } catch (error: any) {
@@ -50,7 +45,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Common known errors from service
-    const message: string = typeof error?.message === "string" ? error.message : "Failed to complete onboarding";
+    const message: string =
+      typeof error?.message === "string"
+        ? error.message
+        : "Failed to complete onboarding";
     const status = message.includes("User not found") ? 400 : 500;
 
     return NextResponse.json(

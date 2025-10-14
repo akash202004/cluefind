@@ -3,8 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Upload, User, ArrowRight, Check } from "lucide-react";
-import toast from "react-hot-toast";
+import {
+  Upload,
+  User,
+  FileText,
+  Github,
+  ArrowRight,
+  Check,
+} from "lucide-react";
 import ImageUpload from "@/components/forms/ImageUpload";
 import ClientOnly from "@/components/ui/ClientOnly";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,17 +18,19 @@ import { useAuth } from "@/contexts/AuthContext";
 interface OnboardingData {
   profileImage: string | null;
   username: string;
-  bio: string;
+  resumeContent: string;
+  githubId: string;
 }
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { user, loading: authLoading, hasProfile, refreshProfile } = useAuth();
+  const { user, loading: authLoading, hasProfile } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     profileImage: null,
     username: "",
-    bio: "",
+    resumeContent: "",
+    githubId: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +50,7 @@ export default function OnboardingPage() {
   }, [user, hasProfile, authLoading, router]);
 
   const handleNext = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
       // Complete onboarding
@@ -67,10 +75,14 @@ export default function OnboardingPage() {
       if (
         !onboardingData.profileImage ||
         !onboardingData.username ||
-        !onboardingData.bio
+        !onboardingData.resumeContent ||
+        !onboardingData.githubId
       ) {
         throw new Error("All fields are required");
       }
+
+      // Extract skills from resume (simple extraction)
+      const skills = extractSkillsFromResume(onboardingData.resumeContent);
 
       // Create user and profile in Prisma database
       const response = await fetch("/api/onboarding/complete", {
@@ -81,8 +93,11 @@ export default function OnboardingPage() {
         body: JSON.stringify({
           profileImage: onboardingData.profileImage,
           username: onboardingData.username,
-          bio: onboardingData.bio,
+          resumeContent: onboardingData.resumeContent,
+          githubId: onboardingData.githubId,
+          skills: skills,
           googleId: user.googleId,
+          email: user.email!,
           name: user.name || onboardingData.username,
         }),
       });
@@ -95,17 +110,10 @@ export default function OnboardingPage() {
       const result = await response.json();
       console.log("Onboarding completed:", result);
 
-      // Refresh the profile status to update hasProfile
-      await refreshProfile();
-
-      // Add a small delay to ensure the database transaction is complete
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Navigate to dashboard
       router.push("/dashboard");
     } catch (error: any) {
       console.error("Error completing onboarding:", error);
-      toast.error(error.message || "Failed to complete onboarding");
+      alert(`Failed to complete onboarding: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -125,7 +133,9 @@ export default function OnboardingPage() {
       case 2:
         return onboardingData.username.length > 0;
       case 3:
-        return onboardingData.bio.length > 0;
+        return onboardingData.resumeContent.length > 0;
+      case 4:
+        return onboardingData.githubId.length > 0;
       default:
         return false;
     }
@@ -174,9 +184,16 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === 3 && (
-            <BioStep
-              data={onboardingData.bio}
-              onUpdate={(value) => updateData("bio", value)}
+            <ResumeStep
+              data={onboardingData.resumeContent}
+              onUpdate={(value) => updateData("resumeContent", value)}
+            />
+          )}
+
+          {currentStep === 4 && (
+            <GitHubStep
+              data={onboardingData.githubId}
+              onUpdate={(value) => updateData("githubId", value)}
             />
           )}
         </div>
@@ -192,7 +209,7 @@ export default function OnboardingPage() {
           </button>
 
           <div className="flex items-center space-x-2">
-            {[1, 2, 3].map((step) => (
+            {[1, 2, 3, 4].map((step) => (
               <div
                 key={step}
                 className={`w-3 h-3 rounded-full border-2 ${
@@ -211,7 +228,7 @@ export default function OnboardingPage() {
             disabled={!isStepComplete(currentStep)}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {currentStep === 3 ? "Complete Setup" : "Next"}
+            {currentStep === 4 ? "Complete Setup" : "Next"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </button>
         </div>
@@ -341,11 +358,8 @@ function ProfileImageStep({
       // Upload using our new API
       const formData = new FormData();
       formData.append("image", file);
-      if (user?.id) {
-        formData.append("userId", user.id);
-      }
 
-      const response = await fetch("/api/upload/profile-image", {
+      const response = await fetch("/api/upload/image", {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -360,7 +374,7 @@ function ProfileImageStep({
       onUpdate(data.imageUrl);
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error(error.message || "Image upload failed");
+      alert(`Failed to upload image: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -529,8 +543,8 @@ function UsernameStep({
   );
 }
 
-// Step 3: Bio
-function BioStep({
+// Step 3: Resume Content
+function ResumeStep({
   data,
   onUpdate,
 }: {
@@ -540,22 +554,91 @@ function BioStep({
   return (
     <div>
       <div className="text-center mb-6">
-        <div className="icon-box-yellow mx-auto mb-4"></div>
-        <h2 className="text-xl font-black uppercase tracking-wide mb-4">Write a short bio</h2>
-        <p className="text-body mb-6">Tell visitors a little about yourself and your work.</p>
+        <div className="icon-box-yellow mx-auto mb-4">
+          <FileText className="w-8 h-8 text-primary" />
+        </div>
+
+        <h2 className="text-xl font-black uppercase tracking-wide mb-4">
+          Paste Your Resume
+        </h2>
+
+        <p className="text-body mb-6">
+          Copy and paste your resume content to showcase your experience
+        </p>
       </div>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">Bio</label>
+          <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+            Resume Content
+          </label>
           <textarea
             value={data}
             onChange={(e) => onUpdate(e.target.value)}
-            placeholder="e.g., Full‑stack developer passionate about TypeScript and DX"
-            rows={6}
+            placeholder="Paste your resume here..."
+            rows={10}
             className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 resize-none"
           />
-          <div className="mt-2 text-sm text-muted-foreground">{data.length} characters</div>
+          <div className="mt-2 text-sm text-muted-foreground">
+            {data.length} characters
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Step 4: GitHub ID
+function GitHubStep({
+  data,
+  onUpdate,
+}: {
+  data: string;
+  onUpdate: (value: string) => void;
+}) {
+  return (
+    <div>
+      <div className="text-center mb-6">
+        <div className="icon-box-indigo mx-auto mb-4">
+          <Github className="w-8 h-8 text-primary" />
+        </div>
+
+        <h2 className="text-xl font-black uppercase tracking-wide mb-4">
+          Connect Your GitHub
+        </h2>
+
+        <p className="text-body mb-6">
+          Enter your GitHub username to showcase your repositories
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
+            GitHub Username
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              value={data}
+              onChange={(e) => onUpdate(e.target.value)}
+              placeholder="yourusername"
+              className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-accent/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] focus:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200"
+            />
+          </div>
+          {data && (
+            <div className="mt-2 text-sm">
+              <span className="text-muted-foreground">Your GitHub: </span>
+              <a
+                href={`https://github.com/${data}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-accent hover:underline"
+              >
+                github.com/{data}
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
