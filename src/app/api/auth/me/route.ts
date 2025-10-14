@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { db } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,6 +12,26 @@ export async function GET(request: NextRequest) {
     }
 
     const session = JSON.parse(sessionCookie.value);
+    
+    // Fetch full user data from database
+    if (session.googleId) {
+      const user = await db.user.findUnique({
+        where: { googleId: session.googleId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          image: true,
+          googleId: true,
+          username: true,
+        }
+      });
+      
+      if (user) {
+        return NextResponse.json(user);
+      }
+    }
+
     return NextResponse.json(session);
 
   } catch (error) {

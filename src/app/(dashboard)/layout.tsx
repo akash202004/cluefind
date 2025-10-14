@@ -44,7 +44,9 @@ export default function DashboardLayout({
   useEffect(() => {
     const updateActive = () => {
       const hash = typeof window !== "undefined" ? window.location.hash : "";
-      if (hash === "#resume") setActive("resume");
+      if (hash === "#view-profile") setActive("view-profile");
+      else if (hash === "#edit-profile") setActive("edit-profile");
+      else if (hash === "#resume") setActive("resume");
       else if (hash === "#github") setActive("github");
       else if (hash === "#skills") setActive("skills");
       else if (hash === "#projects") setActive("projects");
@@ -87,6 +89,13 @@ export default function DashboardLayout({
                 <BarChart3 className="w-5 h-5" />
                 <span className="font-bold uppercase text-sm tracking-wide">
                   Dashboard
+                </span>
+              </NavLink>
+
+              <NavLink href="/dashboard#view-profile" active={active === "view-profile"} onClick={() => setActive("view-profile")}>
+                <User className="w-5 h-5" />
+                <span className="font-bold uppercase text-sm tracking-wide">
+                  View Profile
                 </span>
               </NavLink>
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { User } from "lucide-react";
+import toast from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
@@ -13,7 +14,7 @@ export default function DashboardPage() {
   const [githubId, setGithubId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [active, setActive] = useState<
-    "overview" | "edit-profile" | "resume" | "github" | "skills" | "projects" | "social" | "ai"
+    "overview" | "view-profile" | "edit-profile" | "resume" | "github" | "skills" | "projects" | "social" | "ai"
   >("overview");
   const [fading, setFading] = useState(false);
 
@@ -29,7 +30,8 @@ export default function DashboardPage() {
   useEffect(() => {
     const applyHash = () => {
       const hash = typeof window !== "undefined" ? window.location.hash : "";
-      if (hash === "#edit-profile") setActive("edit-profile");
+      if (hash === "#view-profile") setActive("view-profile");
+      else if (hash === "#edit-profile") setActive("edit-profile");
       else if (hash === "#resume") setActive("resume");
       else if (hash === "#github") setActive("github");
       else if (hash === "#skills") setActive("skills");
@@ -130,7 +132,8 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-section mb-1">Dashboard</h1>
           {active === "overview" && <p className="text-subtitle">Overview</p>}
-          {active === "edit-profile" && <InlineEditProfile />}
+          {active === "view-profile" && <p className="text-subtitle">View Profile</p>}
+          {active === "edit-profile" && <p className="text-subtitle">Edit Profile</p>}
           {active === "resume" && (
             <p className="text-subtitle">Add Resume Content</p>
           )}
@@ -147,6 +150,8 @@ export default function DashboardPage() {
       {/* Main panel - one component at a time, with fade */}
       <div className={`transition-opacity duration-150 ${fading ? "opacity-0" : "opacity-100"}`}>
         {active === "overview" && <OverviewPanel />}
+        {active === "view-profile" && <ViewProfilePanel />}
+        {active === "edit-profile" && <InlineEditProfile />}
         {active === "resume" && (
           <ResumePanel
             resumeContent={resumeContent}
@@ -288,9 +293,6 @@ function ResumePanel({
           rows={12}
           className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
-        <p className="text-sm text-muted-foreground">
-          We store this text directly in Neon.
-        </p>
         <button
           onClick={onSave}
           disabled={!resumeContent.trim() || submitting}
@@ -735,6 +737,43 @@ function AIReviewPanel() {
         </p>
         <button className="btn-outline" disabled>
           Generate AI Review
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ViewProfilePanel() {
+  const { user, refreshUser } = useAuth();
+  const router = useRouter();
+
+  const handleViewProfile = () => {
+    console.log('User data:', user);
+    if (user?.username) {
+      router.push(`/${user.username}`);
+    } else {
+      toast.error('Username not found. Please complete your profile setup.');
+    }
+  };
+
+  const handleRefreshUser = async () => {
+    await refreshUser();
+    toast.success('User data refreshed');
+  };
+
+  return (
+    <div className="card-brutalist">
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">View Your Public Profile</h3>
+      <p className="text-body mb-6">
+        See how your profile looks to others. This will open your public profile page at /{user?.username || 'username'}.
+      </p>
+      <div className="flex gap-4">
+        <button onClick={handleViewProfile} className="btn-primary">
+          <User className="w-4 h-4 mr-2" />
+          View Public Profile
+        </button>
+        <button onClick={handleRefreshUser} className="btn-outline">
+          Refresh User Data
         </button>
       </div>
     </div>

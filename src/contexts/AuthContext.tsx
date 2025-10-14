@@ -15,6 +15,7 @@ interface User {
   name: string;
   image?: string;
   googleId: string;
+  username?: string;
 }
 
 interface AuthContextType {
@@ -22,6 +23,7 @@ interface AuthContextType {
   loading: boolean;
   hasProfile: boolean | null;
   refreshProfile: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -30,6 +32,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   hasProfile: null,
   refreshProfile: async () => {},
+  refreshUser: async () => {},
   signOut: async () => {},
 });
 
@@ -48,6 +51,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (response.ok) {
         const userData = await response.json();
+        console.log("AuthContext received user data:", userData);
         setUser(userData);
 
         // Only check profile if user has googleId and we haven't checked for this user yet
@@ -115,6 +119,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const refreshUser = async () => {
+    await checkAuthStatus();
+  };
+
   const signOut = async () => {
     try {
       await fetch("/api/auth/signout", {
@@ -131,7 +139,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, hasProfile, refreshProfile, signOut }}
+      value={{ user, loading, hasProfile, refreshProfile, refreshUser, signOut }}
     >
       {children}
     </AuthContext.Provider>
