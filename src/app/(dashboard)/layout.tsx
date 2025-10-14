@@ -73,7 +73,7 @@ export default function DashboardLayout({
       else if (hash === "#skills") setActive("skills");
       else if (hash === "#projects") setActive("projects");
       else if (hash === "#social") setActive("social");
-      else if (hash === "#ai") setActive("ai");
+      
       else setActive("dashboard");
     };
     updateActive();
@@ -118,6 +118,15 @@ export default function DashboardLayout({
             </div>
 
             <div className="hidden md:flex items-center gap-3">
+              {user?.username && (
+                <Link
+                  href={`/${user.username}`}
+                  className="btn-outline text-sm font-bold uppercase tracking-wide shadow-brutalist-sm"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  View Profile
+                </Link>
+              )}
               <Link
                 href="/leaderboard"
                 className="btn-outline text-sm font-bold uppercase tracking-wide shadow-brutalist-sm"
@@ -136,6 +145,15 @@ export default function DashboardLayout({
 
             {/* Mobile buttons */}
             <div className="md:hidden flex items-center gap-2">
+              {user?.username && (
+                <Link
+                  href={`/${user.username}`}
+                  className="btn-outline p-2 shadow-brutalist-sm"
+                  title="View Profile"
+                >
+                  <User className="w-4 h-4" />
+                </Link>
+              )}
               <Link
                 href="/leaderboard"
                 className="btn-outline p-2 shadow-brutalist-sm"
@@ -278,17 +296,7 @@ export default function DashboardLayout({
                 <span className="font-medium text-sm">Social Links</span>
               </NavLink>
 
-              <NavLink
-                href="/dashboard#ai"
-                active={active === "ai"}
-                onClick={() => {
-                  setActive("ai");
-                  setMobileOpen(false);
-                }}
-              >
-                <Brain className="w-4 h-4" />
-                <span className="font-medium text-sm">AI Review</span>
-              </NavLink>
+              
             </nav>
           </aside>
 
