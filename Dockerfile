@@ -9,7 +9,8 @@ WORKDIR /app
 # Install dependencies first (leveraging Docker cache)
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci
+RUN npm install --no-audit --no-fund
+
 
 # Generate Prisma client
 RUN npx prisma generate
