@@ -171,7 +171,10 @@
 
 ### CI/CD Pipeline
 
+![Image](./flow.webp)
+
 ```
+
 ┌─────────────────────────────────────────────────────────────┐
 │                    GitHub Repository                         │
 │                    (Push to main)                            │
