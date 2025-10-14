@@ -53,7 +53,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
-              <span className="text-primary-foreground font-black text-xl">D</span>
+              <span className="text-primary-foreground font-black text-xl">C</span>
             </div>
             <span className="text-2xl font-black uppercase tracking-tight">Cluefind</span>
           </Link>
@@ -144,10 +144,6 @@ export default function HomePage() {
                   Get Started
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                <button className="btn-secondary inline-flex items-center gap-2">
-                  <Play className="w-5 h-5" />
-                  Watch Demo
-                </button>
               </>
             )}
           </div>
@@ -190,42 +186,10 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-black uppercase mb-3">Portfolio Builder</h3>
               <p className="text-body">
-                Create stunning portfolio pages with drag-and-drop project showcases and zero-nonsense design.
+                Build a clean, credible profile fast—show projects, links, and who you are.
               </p>
             </div>
-
-            {/* Skill Endorsements */}
-            <div className="card-feature">
-              <div className="icon-box-blue">
-                <Users className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-black uppercase mb-3">Skill Endorsements</h3>
-              <p className="text-body">
-                Get verified endorsements from colleagues who&apos;ve actually worked with you on real projects.
-              </p>
-            </div>
-
-            {/* AI Portfolio Review */}
-            <div className="card-feature">
-              <div className="icon-box-yellow">
-                <Brain className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-black uppercase mb-3">AI Portfolio Review</h3>
-              <p className="text-body">
-                Get brutally honest but constructive feedback on your portfolio with AI-powered insights.
-              </p>
-            </div>
-
-            {/* Analytics Dashboard */}
-            <div className="card-feature">
-              <div className="icon-box-green">
-                <TrendingUp className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-black uppercase mb-3">Analytics Dashboard</h3>
-              <p className="text-body">
-                Track your profile performance with detailed analytics and actionable insights.
-              </p>
-            </div>
+            
 
             {/* Custom Domains */}
             <div className="card-feature">

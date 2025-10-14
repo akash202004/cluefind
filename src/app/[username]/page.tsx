@@ -140,7 +140,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           
 
           <div className="flex items-center justify-center gap-4 mb-8">
-            <SocialActions githubUrl={githubUrl} socialLinks={socialLinks} email={user.email || undefined} variant="icons" />
+            <SocialActions socialLinks={[]} email={user.email || undefined} variant="icons" />
           </div>
 
           {/* Vouches */}

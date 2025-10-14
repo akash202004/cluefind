@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Brain, Zap, Target, Calendar, TrendingUp, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Zap, Target, Calendar, TrendingUp, CheckCircle2 } from "lucide-react";
 
 export default function HowItWorksPage() {
   return (
@@ -26,9 +26,9 @@ export default function HowItWorksPage() {
       <section className="bg-muted py-12 md:py-16 border-y-4 border-primary">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <FeatureCard icon={<Target className="w-7 h-7 text-primary" />} title="Profile from GitHub" description="Connect GitHub and generate your developer profile with repos and data." />
-            <FeatureCard icon={<Brain className="w-7 h-7 text-primary" />} title="AI Review" description="Get actionable feedback on your profile and projects with the AI reviewer." />
+            <FeatureCard icon={<Target className="w-7 h-7 text-primary" />} title="Profile Builder" description="Create a clean public profile with your bio, skills, projects and links." />
             <FeatureCard icon={<TrendingUp className="w-7 h-7 text-primary" />} title="Leaderboard" description="Discover top profiles and see who’s trending in the community." />
+            <FeatureCard icon={<Calendar className="w-7 h-7 text-primary" />} title="Uploads" description="Add a profile image and resume to round out your presence." />
           </div>
         </div>
       </section>
@@ -45,12 +45,11 @@ export default function HowItWorksPage() {
               </p>
 
               <ol className="space-y-4">
-                <StepItem number={1} title="Connect GitHub" description="Import your repos and base profile details to kickstart your page." />
-                <StepItem number={2} title="Generate and edit profile" description="We create a starting profile; you can refine bio, skills, and links." />
-                <StepItem number={3} title="Add projects and details" description="Attach selected repos or projects and add concise context and outcomes." />
-                <StepItem number={4} title="Run AI review" description="Use the AI reviewer to improve clarity, structure, and impact." />
-                <StepItem number={5} title="Upload media (optional)" description="Add a profile image and resume to round out your presence." />
-                <StepItem number={6} title="Share your profile" description="Your profile is live at your username URL for easy sharing." />
+                <StepItem number={1} title="Create your profile" description="Set up your basic profile: name, bio, skills, and a picture." />
+                <StepItem number={2} title="Customize details" description="Refine your bio, skills, and social links at any time." />
+                <StepItem number={3} title="Add projects and details" description="List key projects with short descriptions and links." />
+                <StepItem number={4} title="Upload media (optional)" description="Add a profile image and resume to round out your presence." />
+                <StepItem number={5} title="Share your profile" description="Your profile is live at your username URL for easy sharing." />
               </ol>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -66,16 +65,12 @@ export default function HowItWorksPage() {
             </div>
 
             <div className="grid gap-4">
-              <HighlightCard icon={<TrendingUp className="w-6 h-6" />} title="Project showcases" subtitle="Highlight what matters from your repos/projects." items={[
-                "Link repos and add context",
+              <HighlightCard icon={<TrendingUp className="w-6 h-6" />} title="Project showcases" subtitle="Highlight what matters from your projects." items={[
+                "Add project links with context",
                 "Live demo and repo links",
                 "Tech stack and role",
               ]} />
-              <HighlightCard icon={<Brain className="w-6 h-6" />} title="AI portfolio review" subtitle="Actionable suggestions, not vague scores." items={[
-                "Clarity and structure feedback",
-                "Impact and outcomes suggestions",
-                "Tone and brevity guidance",
-              ]} />
+              
             </div>
           </div>
         </div>
@@ -93,7 +88,7 @@ export default function HowItWorksPage() {
               ]} />
               <HighlightCard icon={<Calendar className="w-6 h-6" />} title="Review faster" subtitle="Consistent structure across profiles." items={[
                 "Quick project summaries",
-                "GitHub activity and repos",
+                "Clear links to code or demos",
                 "Minimal fluff design",
               ]} />
               <HighlightCard icon={<Zap className="w-6 h-6" />} title="Browse talent" subtitle="Use the leaderboard to discover profiles." items={[
@@ -112,8 +107,8 @@ export default function HowItWorksPage() {
 
               <ol className="space-y-4">
                 <StepItem number={1} title="Browse the leaderboard" description="Find active and notable profiles to start your search." />
-                <StepItem number={2} title="Open a public profile" description="Skim projects, tech stack, and linked repos in one place." />
-                <StepItem number={3} title="Check GitHub activity" description="Review recent activity and repo links connected to the profile." />
+                <StepItem number={2} title="Open a public profile" description="Skim projects, tech stack, and links in one place." />
+                <StepItem number={3} title="Review projects quickly" description="Check project links and summaries without extra clicks." />
                 <StepItem number={4} title="Share with your team" description="Copy the profile URL to discuss candidates quickly." />
               </ol>
 

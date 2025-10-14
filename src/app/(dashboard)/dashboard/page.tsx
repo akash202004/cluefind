@@ -22,7 +22,6 @@ export default function DashboardPage() {
     | "skills"
     | "projects"
     | "social"
-    | "ai"
   >("overview");
   const [fading, setFading] = useState(false);
 
@@ -45,7 +44,7 @@ export default function DashboardPage() {
       else if (hash === "#skills") setActive("skills");
       else if (hash === "#projects") setActive("projects");
       else if (hash === "#social") setActive("social");
-      else if (hash === "#ai") setActive("ai");
+      
       else setActive("overview");
     };
     applyHash();
@@ -144,7 +143,6 @@ export default function DashboardPage() {
     "skills",
     "projects",
     "social",
-    "ai",
   ] as const;
   const currentIndex = sections.indexOf(active as any);
   const prevSection = currentIndex > 0 ? sections[currentIndex - 1] : null;
@@ -180,7 +178,6 @@ export default function DashboardPage() {
             <p className="text-subtitle">Projects Show Off</p>
           )}
           {active === "social" && <p className="text-subtitle">Social Links</p>}
-          {active === "ai" && <p className="text-subtitle">AI Review</p>}
         </div>
       </div>
 
@@ -239,11 +236,7 @@ export default function DashboardPage() {
             onNext={nextSection ? () => navigateTo(nextSection) : undefined}
           />
         )}
-        {active === "ai" && (
-          <AIReviewPanel
-            onPrev={prevSection ? () => navigateTo(prevSection) : undefined}
-          />
-        )}
+
       </div>
     </div>
   );
@@ -334,17 +327,7 @@ function OverviewPanel({
           </a>
         </div>
 
-        <div className="card-brutalist">
-          <h3 className="text-lg font-black uppercase tracking-wide mb-3">
-            AI Review
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Get AI-powered feedback on your profile and portfolio.
-          </p>
-          <a href="#ai" className="btn-outline text-sm">
-            Go to AI Review
-          </a>
-        </div>
+        
       </div>
     </div>
   );
@@ -850,11 +833,23 @@ function SocialLinksPanel({
     "Other",
   ];
 
-  const addLink = () => {
-    if (newLink.platform && newLink.url) {
-      setLinks([...links, { ...newLink }]);
-      setNewLink({ platform: "", url: "" });
+  const isValidHttpUrl = (value: string) => {
+    try {
+      const u = new URL(value);
+      return u.protocol === "https:" || u.protocol === "http:";
+    } catch (_) {
+      return false;
     }
+  };
+
+  const addLink = () => {
+    if (!newLink.platform || !newLink.url) return;
+    if (!isValidHttpUrl(newLink.url)) {
+      toast.error("Invalid URL. Hint: include https:// e.g. https://example.com");
+      return;
+    }
+    setLinks([...links, { ...newLink }]);
+    setNewLink({ platform: "", url: "" });
   };
 
   const removeLink = (index: number) => {
@@ -863,6 +858,13 @@ function SocialLinksPanel({
 
   const handleSaveSocialLinks = async () => {
     if (links.length === 0) return;
+    // Client-side validation to give clearer hints before server validation
+    for (const l of links) {
+      if (!isValidHttpUrl(l.url)) {
+        toast.error("Invalid social link URL. Use full URL with https://");
+        return;
+      }
+    }
     setSubmitting(true);
     try {
       const profileId = await resolveProfileId();
@@ -872,7 +874,13 @@ function SocialLinksPanel({
         body: JSON.stringify({ socialLinks: links }),
       });
       const saveData = await saveResp.json();
-      if (!saveResp.ok) throw new Error(saveData.error || "Failed to save");
+      if (!saveResp.ok) {
+        // Surface Zod-style error arrays with a helpful hint
+        if (Array.isArray(saveData?.issues) || Array.isArray(saveData)) {
+          toast.error("Invalid social link URL. Use https://your-site");
+        }
+        throw new Error(saveData.error || "Failed to save social links");
+      }
       toast.success("Social links saved");
     } catch (err: any) {
       toast.error(err.message || "Failed to save social links");
@@ -991,40 +999,7 @@ function SocialLinksPanel({
   );
 }
 
-function AIReviewPanel({ onPrev }: { onPrev?: () => void }) {
-  return (
-    <div className="card-brutalist">
-      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
-        AI Review
-      </h3>
-      <p className="text-body mb-6">
-        Get AI-powered feedback on your profile and portfolio. This feature will
-        analyze your content and provide suggestions for improvement.
-      </p>
-      <div className="bg-muted/30 border-4 border-primary rounded-lg p-6 text-center">
-        <p className="text-muted-foreground mb-4">
-          AI Review feature coming soon...
-        </p>
-        <button className="btn-outline" disabled>
-          Generate AI Review
-        </button>
-      </div>
-
-      {/* Navigation */}
-      {onPrev && (
-        <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
-          <button
-            onClick={onPrev}
-            className="btn-outline flex-1 flex items-center justify-center gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Previous
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
+ 
 
 function ViewProfilePanel() {
   const { user, refreshUser } = useAuth();
