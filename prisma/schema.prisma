@@ -10,11 +10,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  STUDENT 
+  RECRUITER
+}
+
 model User {
   id                  String   @id @default(cuid())
   email               String   @unique
   emailVerified       Boolean  @default(false)
   name                String?
+  role                Role   @default(STUDENT)
   username            String   @unique
   image               String?
   bio                 String?
@@ -33,14 +39,13 @@ model Profile {
   skills        String[] @default([])
   resumeContent String?
   githubId      String?
-  resumeUrl     String?
-  projects      Json?    // Array of {title, description, url}
-  socialLinks   Json?    // Array of {platform, url}
+  projects      Json?    
+  socialLinks   Json?    
   lastSyncedAt  DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  user          User     @relation(fields: [userId], references: [id])
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   repos         Repo[]
   vouches       Vouch[]
 }
@@ -55,7 +60,7 @@ model Repo {
   fork        Boolean @default(false)
   createdAt   DateTime @default(now())
 
-  profile     Profile @relation(fields: [profileId], references: [id])
+  profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
   
 model Vouch {
@@ -67,6 +72,6 @@ model Vouch {
   verified    Boolean  @default(false)
   createdAt   DateTime @default(now())
 
-  profile     Profile  @relation(fields: [profileId], references: [id])
-  voucher     User     @relation("VouchesGiven", fields: [voucherId], references: [id])
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  voucher     User     @relation("VouchesGiven", fields: [voucherId], references: [id], onDelete: Cascade)
 }

@@ -4,6 +4,7 @@ import { UserService } from "@/lib/services/user.service";
 export async function POST(request: NextRequest) {
   try {
     const { 
+      role,
       profileImage, 
       username, 
       bio, 
@@ -13,9 +14,17 @@ export async function POST(request: NextRequest) {
     } = await request.json();
 
     // Validate required fields
-    if (!profileImage || !username || !bio || !googleId) {
+    if (!role || !googleId) {
       return NextResponse.json(
-        { error: "All fields are required" },
+        { error: "Role and Google ID are required" },
+        { status: 400 }
+      );
+    }
+
+    // For students, validate profile fields
+    if (role === 'STUDENT' && (!profileImage || !username || !bio)) {
+      return NextResponse.json(
+        { error: "All profile fields are required for students" },
         { status: 400 }
       );
     }
@@ -23,6 +32,7 @@ export async function POST(request: NextRequest) {
     // Complete onboarding using service
     const userService = new UserService();
     console.log("Onboarding data received:", {
+      role,
       profileImage,
       username,
       bio,
@@ -31,6 +41,7 @@ export async function POST(request: NextRequest) {
     });
     
     const result = await userService.completeOnboarding(googleId, {
+      role,
       profileImage,
       username,
       bio,
@@ -39,14 +50,16 @@ export async function POST(request: NextRequest) {
     
     console.log("Onboarding completed successfully:", {
       userId: result.user.id,
+      role: result.user.role,
       imageUrl: result.user.image,
     });
 
     return NextResponse.json({
       success: true,
       userId: result.user.id,
-      profileId: result.profile.id,
+      profileId: result.profile?.id,
       username: result.user.username,
+      role: result.user.role,
       message: "Onboarding completed successfully",
     });
   } catch (error: any) {
