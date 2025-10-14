@@ -130,18 +130,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Redirect based on onboarding status
+    // Redirect based on role and onboarding status
+    if (user.role === 'RECRUITER') {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/leaderboard`
+      );
+    }
+
     if (user.onboardingComplete) {
-      console.log("User onboarding complete, redirecting to dashboard");
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
       );
-    } else {
-      console.log("User needs onboarding, redirecting to onboarding");
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`
-      );
     }
+
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`
+    );
   } catch (error) {
     console.error("Unexpected auth callback error:", error);
     return NextResponse.redirect(

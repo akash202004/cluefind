@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Github, Linkedin, Mail, ExternalLink } from "lucide-react";
+import SocialActions from "@/components/portfolio/SocialActions";
 import VouchButton from "@/components/portfolio/VouchButton";
 import { db } from "@/lib/db";
 import type { Metadata } from "next";
@@ -94,6 +95,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
   const githubUrl = user.profile.githubId
     ? `https://github.com/${user.profile.githubId}`
     : undefined;
+  const singleProject = projects.length === 1;
 
   return (
     <div className="min-h-screen bg-background dot-grid-bg">
@@ -106,7 +108,9 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
             </div>
             <span className="text-2xl font-black uppercase tracking-tight">Cluefind</span>
           </Link>
-          <div />
+          <Link href="/" className="btn-secondary text-sm px-4 py-2 font-bold uppercase">
+            Join Now
+          </Link>
         </div>
       </header>
 
@@ -136,28 +140,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           
 
           <div className="flex items-center justify-center gap-4 mb-8">
-            {githubUrl && (
-              <Link href={githubUrl} className="btn-outline p-3">
-                <Github className="w-6 h-6" />
-              </Link>
-            )}
-            {socialLinks.map((link, idx) => (
-              <Link key={idx} href={link.url} className="btn-outline p-3">
-                {link.platform.toLowerCase().includes("linkedin") ? (
-                  <Linkedin className="w-6 h-6" />
-                ) : link.platform.toLowerCase().includes("mail") || link.platform.toLowerCase().includes("email") ? (
-                  <Mail className="w-6 h-6" />
-                ) : (
-                  <ExternalLink className="w-6 h-6" />
-                )}
-              </Link>
-            ))}
-            {user.email && (
-              <a href={`mailto:${user.email}`} className="btn-secondary px-4 py-2 inline-flex items-center gap-2 text-sm font-bold uppercase">
-                <Mail className="w-4 h-4" />
-                Contact
-              </a>
-            )}
+            <SocialActions githubUrl={githubUrl} socialLinks={socialLinks} email={user.email || undefined} variant="icons" />
           </div>
 
           {/* Vouches */}
@@ -194,9 +177,9 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           {projects.length === 0 ? (
             <p className="text-center text-muted-foreground">No projects added yet.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`${singleProject ? "grid grid-cols-1 place-items-center" : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"} gap-6`}>
               {projects.map((project, idx) => (
-                <div key={idx} className="card-brutalist h-full flex flex-col">
+                <div key={idx} className={`card-brutalist h-full flex flex-col ${singleProject ? "w-full max-w-xl" : ""}`}>
                   {project.image ? (
                     <div className="w-full h-40 border-4 border-primary rounded mb-4 overflow-hidden">
                       <Image src={project.image} alt={project.title || `Project ${idx+1}`} width={600} height={300} className="w-full h-full object-cover" />
@@ -237,14 +220,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
             <p className="text-center text-muted-foreground">No social links yet.</p>
           ) : (
             <div className="flex flex-wrap justify-center gap-3">
-              {githubUrl && (
-                <Link href={githubUrl} className="btn-outline p-2"><Github className="w-5 h-5" /></Link>
-              )}
-              {socialLinks.map((link, idx) => (
-                <Link key={idx} href={link.url} className="btn-outline p-2">
-                  {link.platform}
-                </Link>
-              ))}
+              <SocialActions githubUrl={githubUrl} socialLinks={socialLinks} email={user.email || undefined} variant="list" />
             </div>
           )}
         </section>

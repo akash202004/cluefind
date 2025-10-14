@@ -16,7 +16,9 @@ export default function GetStartedPage() {
     if (authLoading) return;
 
     if (user) {
-      if (hasProfile === true) {
+      if (user.role === 'RECRUITER') {
+        router.push("/leaderboard");
+      } else if (hasProfile === true) {
         router.push("/dashboard");
       } else if (hasProfile === false) {
         router.push("/onboarding");

@@ -30,16 +30,17 @@ export default function LeaderboardPage() {
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     fetchLeaderboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, pageSize]);
 
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/leaderboard?page=${page}&limit=20`);
+      const response = await fetch(`/api/leaderboard?page=${page}&limit=${pageSize}`);
       const result = await response.json();
       
       if (response.ok && result.success) {
@@ -138,7 +139,7 @@ export default function LeaderboardPage() {
         ) : data?.students && data.students.length > 0 ? (
           <div className="max-w-4xl mx-auto space-y-4">
             {data.students.map((student, index) => {
-              const rank = (page - 1) * 20 + index + 1;
+              const rank = (page - 1) * pageSize + index + 1;
               return (
                 <div 
                   key={student.id} 
@@ -238,8 +239,28 @@ export default function LeaderboardPage() {
         )}
 
         {/* Pagination */}
-        {data && data.pagination.totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 mt-12">
+        {data && data.pagination.totalPages > 0 && (
+          <div className="flex flex-col items-center gap-4 mt-12">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold">Rows per page</span>
+              <select
+                className="px-3 py-2 border-2 border-primary rounded-lg bg-background"
+                value={pageSize}
+                onChange={(e) => {
+                  const next = parseInt(e.target.value);
+                  setPageSize(next);
+                  setPage(1);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              {typeof data.pagination.total === 'number' && (
+                <span className="text-sm text-muted-foreground">Total: {data.pagination.total}</span>
+              )}
+            </div>
+            <div className="flex justify-center items-center gap-4">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
@@ -257,6 +278,7 @@ export default function LeaderboardPage() {
             >
               Next
             </button>
+            </div>
           </div>
         )}
       </main>

@@ -15,6 +15,11 @@ export default function HomePage() {
   useEffect(() => {
     if (authLoading) return;
 
+    if (user && user.role === 'RECRUITER') {
+      router.push("/leaderboard");
+      return;
+    }
+
     if (user && hasProfile === true) {
       router.push("/dashboard");
       return;
@@ -36,7 +41,7 @@ export default function HomePage() {
   }
 
   // Don't render landing page if user should be redirected
-  if (user && hasProfile === true) {
+  if (user && (hasProfile === true || user.role === 'RECRUITER')) {
     return null;
   }
 
@@ -71,7 +76,7 @@ export default function HomePage() {
             ) : (
               // Guest user navigation
               <>
-                <Link href="#how-it-works" className="font-bold uppercase text-sm hover:text-accent transition-colors">
+                <Link href="/how-it-works" className="font-bold uppercase text-sm hover:text-accent transition-colors">
                   How it Works
                 </Link>
                 <Link href="/leaderboard" className="font-bold uppercase text-sm hover:text-accent transition-colors">
