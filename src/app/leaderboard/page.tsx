@@ -127,25 +127,7 @@ export default function LeaderboardPage() {
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-          <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">{data?.pagination.total || 0}</div>
-            <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Developers</div>
-          </div>
-          <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">
-              {data?.students.reduce((acc, s) => acc + s.vouchCount, 0) || 0}
-            </div>
-            <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Vouches</div>
-          </div>
-          <div className="card-brutalist text-center">
-            <div className="text-3xl font-black mb-2">
-              {data?.students.reduce((acc, s) => acc + s.repoCount, 0) || 0}
-            </div>
-            <div className="text-sm uppercase tracking-wide text-muted-foreground">Total Repos</div>
-          </div>
-        </div>
+        {/* Stats Overview removed per request */}
 
         {/* Leaderboard List */}
         {loading ? (

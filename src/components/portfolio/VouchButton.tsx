@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import toast from "react-hot-toast";
 
 interface VouchButtonProps {
   profileId: string;
@@ -26,14 +27,25 @@ export default function VouchButton({ profileId, onChange }: VouchButtonProps) {
       if (res.ok) {
         setHasVouched(!!data?.data?.hasVouched);
         onChange?.({ hasVouched: !!data?.data?.hasVouched, count: data?.data?.count });
+        // If it's own profile, inform once and disable button behavior
+        if (data?.data?.isSelf) {
+          setError("Self-vouch is not possible");
+        }
       }
     } catch {}
   }
 
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileId, user?.googleId]);
+
   const handleVouch = async () => {
     setError(null);
     if (!user?.googleId) {
-      setError("Please sign in to vouch");
+      const msg = "Please sign in to vouch";
+      setError(msg);
+      toast.error(msg);
       return;
     }
     setLoading(true);
@@ -51,14 +63,20 @@ export default function VouchButton({ profileId, onChange }: VouchButtonProps) {
       if (!res.ok) throw new Error(data?.error || "Failed to vouch");
       setHasVouched(!hasVouched);
       onChange?.({ hasVouched: !hasVouched });
+      toast.success(!hasVouched ? "Vouched" : "Unvouched");
     } catch (e: any) {
       setError(e.message);
+      if (/self|yourself/i.test(e.message)) {
+        toast.error("Self-vouch is not possible");
+      } else {
+        toast.error(e.message || "Action failed");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const disabled = loading || !user || user.role !== "STUDENT";
+  const disabled = loading || !user || user.role !== "STUDENT" || !!error && /Self-vouch/i.test(error);
 
   return (
     <div className="flex flex-col items-center">

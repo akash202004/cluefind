@@ -17,16 +17,18 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    await profileService.getProfileById(id);
+    const profile = await profileService.getProfileById(id);
     const { vouches, count } = await vouchService.listByProfile(id);
     // hasVouched state if requester provided
     const googleId = request.headers.get("x-user-googleid");
     let hasVouched = false;
+    let isSelf = false;
     if (googleId) {
       const user = await userService.getUserByGoogleId(googleId);
       hasVouched = await vouchService.hasVouched(id, user.id);
+      isSelf = profile.user.id === user.id;
     }
-    return NextResponse.json(createSuccessResponse({ vouches, count, hasVouched }));
+    return NextResponse.json(createSuccessResponse({ vouches, count, hasVouched, isSelf }));
   } catch (error) {
     const apiError = handleApiError(error);
     return NextResponse.json(

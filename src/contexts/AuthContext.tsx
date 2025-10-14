@@ -56,7 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(userData);
 
         if (userData?.googleId) {
-          checkProfile(userData.googleId);
+          // Force a fresh profile check for this session (important after onboarding)
+          profileCheckRef.current = null;
+          await checkProfile(userData.googleId);
         } else {
           setHasProfile(false);
         }
@@ -114,6 +116,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const refreshUser = async () => {
+    // Ensure subsequent profile check runs even for same googleId
+    profileCheckRef.current = null;
     await checkAuthStatus();
   };
 

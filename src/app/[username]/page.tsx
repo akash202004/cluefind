@@ -58,6 +58,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
       id: true,
       name: true,
       username: true,
+      email: true,
       image: true,
       bio: true,
       profile: {
@@ -151,6 +152,12 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
                 )}
               </Link>
             ))}
+            {user.email && (
+              <a href={`mailto:${user.email}`} className="btn-secondary px-4 py-2 inline-flex items-center gap-2 text-sm font-bold uppercase">
+                <Mail className="w-4 h-4" />
+                Contact
+              </a>
+            )}
           </div>
 
           {/* Vouches */}
@@ -181,26 +188,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           )}
         </section>
 
-        {/* Social links Section */}
-        <section className="mb-12">
-          <h2 className="text-section mb-8 text-center">Social Links</h2>
-          {socialLinks.length === 0 && !githubUrl ? (
-            <p className="text-center text-muted-foreground">No social links yet.</p>
-          ) : (
-            <div className="flex flex-wrap justify-center gap-3">
-              {githubUrl && (
-                <Link href={githubUrl} className="btn-outline p-2"><Github className="w-5 h-5" /></Link>
-              )}
-              {socialLinks.map((link, idx) => (
-                <Link key={idx} href={link.url} className="btn-outline p-2">
-                  {link.platform}
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Projects Section */}
+        {/* Projects Section (moved above Social Links) */}
         <section className="mb-12">
           <h2 className="text-section mb-8 text-center">Projects</h2>
           {projects.length === 0 ? (
@@ -237,6 +225,25 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
                     ) : null}
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Social links Section */}
+        <section className="mb-12">
+          <h2 className="text-section mb-8 text-center">Social Links</h2>
+          {socialLinks.length === 0 && !githubUrl ? (
+            <p className="text-center text-muted-foreground">No social links yet.</p>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-3">
+              {githubUrl && (
+                <Link href={githubUrl} className="btn-outline p-2"><Github className="w-5 h-5" /></Link>
+              )}
+              {socialLinks.map((link, idx) => (
+                <Link key={idx} href={link.url} className="btn-outline p-2">
+                  {link.platform}
+                </Link>
               ))}
             </div>
           )}

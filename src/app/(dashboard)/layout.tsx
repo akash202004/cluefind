@@ -98,10 +98,16 @@ export default function DashboardLayout({
               </span>
             </Link>
 
-            <button onClick={handleSignOut} className="btn-outline">
+            <div className="flex items-center gap-3">
+              <Link href="/leaderboard" className="btn-outline">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Leaderboard
+              </Link>
+              <button onClick={handleSignOut} className="btn-outline">
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
-            </button>
+              </button>
+            </div>
           </div>
         </header>
 
