@@ -572,7 +572,7 @@ function UsernameStep({
               <span className="text-muted-foreground">
                 Your profile will be:{" "}
               </span>
-              <span className="font-bold text-accent">cluefind.com/{data}</span>
+              <span className="font-bold text-accent">cluefind.software/{data}</span>
             </div>
           )}
 

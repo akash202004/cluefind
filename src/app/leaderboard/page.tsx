@@ -250,10 +250,7 @@ export default function LeaderboardPage() {
               <span>Top Developers</span>
             </div>
             <h1 className="text-section mb-3">Leaderboard</h1>
-            <p className="text-subtitle">
-              Discover standout profiles. Sign in to view your dashboard or
-              start building your profile.
-            </p>
+            <p className="text-subtitle">Discover standout profiles.</p>
           </div>
         </div>
 
@@ -261,7 +258,7 @@ export default function LeaderboardPage() {
         <div className="max-w-2xl mx-auto mb-6">
           <SearchBar
             onSearch={handleSearch}
-            placeholder="Search developers by skills (comma or space separated)..."
+            placeholder="Type the full skill name (e.g., Next.js)"
             className="w-full"
             value={searchQuery}
           />

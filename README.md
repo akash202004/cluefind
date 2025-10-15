@@ -38,7 +38,7 @@
 - **GitHub Integration** - Auto-sync profile data and activity tracking
 - **Skill Management** - Add skills and receive peer endorsements
 - **Resume AI Review** - Get brutally honest feedback from AI-powered senior engineers
-- **Public Profiles** - Custom `username.cluefind.com` URLs
+- **Public Profiles** - Custom `cluefind.software/{username}` URLs
 - **Leaderboard** - Compete and showcase achievements
 - **Social Links** - Connect GitHub, LinkedIn, and other platforms
 
