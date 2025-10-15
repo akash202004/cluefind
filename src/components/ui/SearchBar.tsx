@@ -10,7 +10,7 @@ interface SearchBarProps {
 
 export default function SearchBar({
   onSearch,
-  placeholder = "Search students...",
+  placeholder = "Search by name, skills, bio, projects, or technologies...",
   className = "",
   value = "",
 }: SearchBarProps) {

@@ -32,6 +32,10 @@ model User {
   profile       Profile?
   vouches       Vouch[] @relation("VouchesGiven")
   vouchActions  VouchAction[] @relation("VouchActionsGiven")
+
+  @@index([name])
+  @@index([username])
+  @@index([bio])
 }
 
 model Profile {
@@ -49,6 +53,9 @@ model Profile {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   repos         Repo[]
   vouches       Vouch[]
+
+  @@index([skills])
+  @@index([resumeContent])
 }
 
 model Repo {
@@ -62,6 +69,10 @@ model Repo {
   createdAt   DateTime @default(now())
 
   profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([name])
+  @@index([description])
+  @@index([languages])
 }
   
 model Vouch {

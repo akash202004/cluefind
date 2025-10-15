@@ -144,18 +144,93 @@ export class ProfileService {
       let where: any = {};
 
       if (search) {
+        const searchTerm = search.trim();
         where.OR = [
-          {
-            user: { name: { contains: search, mode: "insensitive" as const } },
-          },
+          // User name search
           {
             user: {
-              email: { contains: search, mode: "insensitive" as const },
+              name: { contains: searchTerm, mode: "insensitive" as const },
             },
           },
+          // User email search
           {
             user: {
-              username: { contains: search, mode: "insensitive" as const },
+              email: { contains: searchTerm, mode: "insensitive" as const },
+            },
+          },
+          // Username search
+          {
+            user: {
+              username: { contains: searchTerm, mode: "insensitive" as const },
+            },
+          },
+          // Bio search
+          {
+            user: {
+              bio: { contains: searchTerm, mode: "insensitive" as const },
+            },
+          },
+          // Skills search - exact and partial matches
+          {
+            skills: {
+              hasSome: [searchTerm], // Try exact match first
+            },
+          },
+          // Skills search - case insensitive match
+          {
+            skills: {
+              hasSome: [searchTerm.toLowerCase()],
+            },
+          },
+          // Skills search - case insensitive match with capitalized first letter
+          {
+            skills: {
+              hasSome: [
+                searchTerm.charAt(0).toUpperCase() +
+                  searchTerm.slice(1).toLowerCase(),
+              ],
+            },
+          },
+          // Skills search - uppercase version
+          {
+            skills: {
+              hasSome: [searchTerm.toUpperCase()],
+            },
+          },
+          // Resume content search
+          {
+            resumeContent: {
+              contains: searchTerm,
+              mode: "insensitive" as const,
+            },
+          },
+          // Repository name search
+          {
+            repos: {
+              some: {
+                name: { contains: searchTerm, mode: "insensitive" as const },
+              },
+            },
+          },
+          // Repository description search
+          {
+            repos: {
+              some: {
+                description: {
+                  contains: searchTerm,
+                  mode: "insensitive" as const,
+                },
+              },
+            },
+          },
+          // Repository languages search
+          {
+            repos: {
+              some: {
+                languages: {
+                  hasSome: [searchTerm],
+                },
+              },
             },
           },
         ];
@@ -163,9 +238,23 @@ export class ProfileService {
 
       if (skills) {
         const skillArray = skills.split(",").map((s) => s.trim());
-        where.skills = {
-          hasSome: skillArray,
-        };
+        // If search is already applied, we need to combine with AND
+        if (where.OR) {
+          where = {
+            AND: [
+              { OR: where.OR },
+              {
+                skills: {
+                  hasSome: skillArray,
+                },
+              },
+            ],
+          };
+        } else {
+          where.skills = {
+            hasSome: skillArray,
+          };
+        }
       }
 
       const [profiles, total] = await Promise.all([
@@ -175,6 +264,14 @@ export class ProfileService {
           take: limit,
           include: {
             user: true,
+            repos: {
+              select: {
+                id: true,
+                name: true,
+                description: true,
+                languages: true,
+              },
+            },
             _count: {
               select: {
                 vouches: true,
@@ -182,7 +279,11 @@ export class ProfileService {
               },
             },
           },
-          orderBy: { createdAt: "desc" },
+          orderBy: [
+            // Order by creation date for now - can be enhanced with relevance scoring
+            { updatedAt: "desc" },
+            { createdAt: "desc" },
+          ],
         }),
         db.profile.count({ where }),
       ]);

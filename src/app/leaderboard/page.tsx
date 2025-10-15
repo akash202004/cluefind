@@ -259,7 +259,7 @@ export default function LeaderboardPage() {
         <div className="max-w-2xl mx-auto mb-6">
           <SearchBar
             onSearch={handleSearch}
-            placeholder="Search students by name, skills, or bio..."
+            placeholder="Search by name, skills, bio, projects, or technologies..."
             className="w-full"
             value={searchQuery}
           />

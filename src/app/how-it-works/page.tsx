@@ -1,11 +1,18 @@
 import Link from "next/link";
-import { ArrowRight, Zap, Target, Calendar, TrendingUp, CheckCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  Zap,
+  Target,
+  Calendar,
+  TrendingUp,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function HowItWorksPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
+      <section className="container mx-auto px-4 py-8 md:py-10">
         <div className="max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent border-4 border-primary rounded-lg font-bold uppercase text-sm tracking-wide shadow-brutalist-sm mb-6">
             <Zap className="w-5 h-5" />
@@ -14,11 +21,21 @@ export default function HowItWorksPage() {
           <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4">
             One Platform. Two Perspectives.
           </h1>
-          <p className="text-subtitle max-w-2xl mx-auto">
+          <p className="text-subtitle max-w-2xl mx-auto mb-8">
             Whether you are a developer showcasing your craft or a recruiter
             discovering great talent, Cluefind brings clarity, credibility, and
             speed to the process.
           </p>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="/leaderboard"
+              className="btn-secondary inline-flex items-center gap-2"
+            >
+              View Leaderboard
+              <TrendingUp className="w-5 h-5" />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -26,9 +43,21 @@ export default function HowItWorksPage() {
       <section className="bg-muted py-12 md:py-16 border-y-4 border-primary">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <FeatureCard icon={<Target className="w-7 h-7 text-primary" />} title="Profile Builder" description="Create a clean public profile with your bio, skills, projects and links." />
-            <FeatureCard icon={<TrendingUp className="w-7 h-7 text-primary" />} title="Leaderboard" description="Discover top profiles and see who’s trending in the community." />
-            <FeatureCard icon={<Calendar className="w-7 h-7 text-primary" />} title="Uploads" description="Add a profile image and resume to round out your presence." />
+            <FeatureCard
+              icon={<Target className="w-7 h-7 text-primary" />}
+              title="Profile Builder"
+              description="Create a clean public profile with your bio, skills, projects and links."
+            />
+            <FeatureCard
+              icon={<TrendingUp className="w-7 h-7 text-primary" />}
+              title="Leaderboard"
+              description="Discover top profiles and see who’s trending in the community."
+            />
+            <FeatureCard
+              icon={<Calendar className="w-7 h-7 text-primary" />}
+              title="Uploads"
+              description="Add a profile image and resume to round out your presence."
+            />
           </div>
         </div>
       </section>
@@ -40,24 +69,51 @@ export default function HowItWorksPage() {
             <div>
               <h2 className="text-section mb-3">For Developers</h2>
               <p className="text-body mb-6 max-w-xl">
-                Turn your experience into a compelling narrative. Show real projects, real
-                impact, and real endorsements—optimized for credibility.
+                Turn your experience into a compelling narrative. Show real
+                projects, real impact, and real endorsements—optimized for
+                credibility.
               </p>
 
               <ol className="space-y-4">
-                <StepItem number={1} title="Create your profile" description="Set up your basic profile: name, bio, skills, and a picture." />
-                <StepItem number={2} title="Customize details" description="Refine your bio, skills, and social links at any time." />
-                <StepItem number={3} title="Add projects and details" description="List key projects with short descriptions and links." />
-                <StepItem number={4} title="Upload media (optional)" description="Add a profile image and resume to round out your presence." />
-                <StepItem number={5} title="Share your profile" description="Your profile is live at your username URL for easy sharing." />
+                <StepItem
+                  number={1}
+                  title="Create your profile"
+                  description="Set up your basic profile: name, bio, skills, and a picture."
+                />
+                <StepItem
+                  number={2}
+                  title="Customize details"
+                  description="Refine your bio, skills, and social links at any time."
+                />
+                <StepItem
+                  number={3}
+                  title="Add projects and details"
+                  description="List key projects with short descriptions and links."
+                />
+                <StepItem
+                  number={4}
+                  title="Upload media (optional)"
+                  description="Add a profile image and resume to round out your presence."
+                />
+                <StepItem
+                  number={5}
+                  title="Share your profile"
+                  description="Your profile is live at your username URL for easy sharing."
+                />
               </ol>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/get-started" className="btn-primary inline-flex items-center gap-2">
+                <Link
+                  href="/get-started"
+                  className="btn-primary inline-flex items-center gap-2"
+                >
                   Get Started
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                <Link href="/leaderboard" className="btn-secondary inline-flex items-center gap-2">
+                <Link
+                  href="/leaderboard"
+                  className="btn-secondary inline-flex items-center gap-2"
+                >
                   Explore Community
                   <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -65,12 +121,16 @@ export default function HowItWorksPage() {
             </div>
 
             <div className="grid gap-4">
-              <HighlightCard icon={<TrendingUp className="w-6 h-6" />} title="Project showcases" subtitle="Highlight what matters from your projects." items={[
-                "Add project links with context",
-                "Live demo and repo links",
-                "Tech stack and role",
-              ]} />
-              
+              <HighlightCard
+                icon={<TrendingUp className="w-6 h-6" />}
+                title="Project showcases"
+                subtitle="Highlight what matters from your projects."
+                items={[
+                  "Add project links with context",
+                  "Live demo and repo links",
+                  "Tech stack and role",
+                ]}
+              />
             </div>
           </div>
         </div>
@@ -81,43 +141,80 @@ export default function HowItWorksPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-start">
             <div className="order-2 lg:order-1 grid gap-4">
-              <HighlightCard icon={<Target className="w-6 h-6" />} title="Skimmable profiles" subtitle="Straight to projects and impact." items={[
-                "Project overviews and links",
-                "Tech stack visibility",
-                "Public profile URLs",
-              ]} />
-              <HighlightCard icon={<Calendar className="w-6 h-6" />} title="Review faster" subtitle="Consistent structure across profiles." items={[
-                "Quick project summaries",
-                "Clear links to code or demos",
-                "Minimal fluff design",
-              ]} />
-              <HighlightCard icon={<Zap className="w-6 h-6" />} title="Browse talent" subtitle="Use the leaderboard to discover profiles." items={[
-                "Leaderboard discovery",
-                "Open profiles in new tabs",
-                "Share with hiring team",
-              ]} />
+              <HighlightCard
+                icon={<Target className="w-6 h-6" />}
+                title="Skimmable profiles"
+                subtitle="Straight to projects and impact."
+                items={[
+                  "Project overviews and links",
+                  "Tech stack visibility",
+                  "Public profile URLs",
+                ]}
+              />
+              <HighlightCard
+                icon={<Calendar className="w-6 h-6" />}
+                title="Review faster"
+                subtitle="Consistent structure across profiles."
+                items={[
+                  "Quick project summaries",
+                  "Clear links to code or demos",
+                  "Minimal fluff design",
+                ]}
+              />
+              <HighlightCard
+                icon={<Zap className="w-6 h-6" />}
+                title="Browse talent"
+                subtitle="Use the leaderboard to discover profiles."
+                items={[
+                  "Leaderboard discovery",
+                  "Open profiles in new tabs",
+                  "Share with hiring team",
+                ]}
+              />
             </div>
 
             <div className="order-1 lg:order-2">
               <h2 className="text-section mb-3">For Recruiters</h2>
               <p className="text-body mb-6 max-w-xl">
-                Evaluate real engineering skill quickly. Review projects, repos, and
-                GitHub-linked activity to make confident decisions.
+                Evaluate real engineering skill quickly. Review projects, repos,
+                and GitHub-linked activity to make confident decisions.
               </p>
 
               <ol className="space-y-4">
-                <StepItem number={1} title="Browse the leaderboard" description="Find active and notable profiles to start your search." />
-                <StepItem number={2} title="Open a public profile" description="Skim projects, tech stack, and links in one place." />
-                <StepItem number={3} title="Review projects quickly" description="Check project links and summaries without extra clicks." />
-                <StepItem number={4} title="Share with your team" description="Copy the profile URL to discuss candidates quickly." />
+                <StepItem
+                  number={1}
+                  title="Browse the leaderboard"
+                  description="Find active and notable profiles to start your search."
+                />
+                <StepItem
+                  number={2}
+                  title="Open a public profile"
+                  description="Skim projects, tech stack, and links in one place."
+                />
+                <StepItem
+                  number={3}
+                  title="Review projects quickly"
+                  description="Check project links and summaries without extra clicks."
+                />
+                <StepItem
+                  number={4}
+                  title="Share with your team"
+                  description="Copy the profile URL to discuss candidates quickly."
+                />
               </ol>
 
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/get-started" className="btn-primary inline-flex items-center gap-2">
+                <Link
+                  href="/get-started"
+                  className="btn-primary inline-flex items-center gap-2"
+                >
                   Start Hiring Faster
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                <Link href="/leaderboard" className="btn-secondary inline-flex items-center gap-2">
+                <Link
+                  href="/leaderboard"
+                  className="btn-secondary inline-flex items-center gap-2"
+                >
                   Browse Talent
                   <ArrowRight className="w-5 h-5" />
                 </Link>
@@ -131,9 +228,16 @@ export default function HowItWorksPage() {
       <section className="py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center bg-card border-4 border-primary rounded-lg p-10 shadow-brutalist-lg">
-            <h3 className="text-3xl md:text-4xl font-black mb-3">Ready to try Cluefind?</h3>
-            <p className="text-subtitle mb-6">Create a profile in minutes and start collecting real signals.</p>
-            <Link href="/get-started" className="btn-primary inline-flex items-center gap-2">
+            <h3 className="text-3xl md:text-4xl font-black mb-3">
+              Ready to try Cluefind?
+            </h3>
+            <p className="text-subtitle mb-6">
+              Create a profile in minutes and start collecting real signals.
+            </p>
+            <Link
+              href="/get-started"
+              className="btn-primary inline-flex items-center gap-2"
+            >
               Get Started
               <ArrowRight className="w-5 h-5" />
             </Link>
@@ -144,19 +248,33 @@ export default function HowItWorksPage() {
   );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string; }) {
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
   return (
     <div className="card-feature">
-      <div className="icon-box-blue">
-        {icon}
-      </div>
+      <div className="icon-box-blue">{icon}</div>
       <h3 className="text-lg font-black uppercase mb-2">{title}</h3>
       <p className="text-body">{description}</p>
     </div>
   );
 }
 
-function StepItem({ number, title, description }: { number: number; title: string; description: string; }) {
+function StepItem({
+  number,
+  title,
+  description,
+}: {
+  number: number;
+  title: string;
+  description: string;
+}) {
   return (
     <li className="bg-card border-4 border-primary rounded-lg p-4 shadow-brutalist-sm">
       <div className="flex items-start gap-3">
@@ -172,7 +290,17 @@ function StepItem({ number, title, description }: { number: number; title: strin
   );
 }
 
-function HighlightCard({ icon, title, subtitle, items }: { icon: React.ReactNode; title: string; subtitle: string; items: string[]; }) {
+function HighlightCard({
+  icon,
+  title,
+  subtitle,
+  items,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  items: string[];
+}) {
   return (
     <div className="bg-card border-4 border-primary rounded-lg p-5 shadow-brutalist">
       <div className="flex items-center gap-3 mb-1">
@@ -195,5 +323,3 @@ function HighlightCard({ icon, title, subtitle, items }: { icon: React.ReactNode
     </div>
   );
 }
-
-
