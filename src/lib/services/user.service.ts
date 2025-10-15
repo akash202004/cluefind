@@ -225,21 +225,36 @@ export class UserService {
         throw new Error("Email is required for user creation");
       }
 
-      // Generate username from email if not provided
-      const username =
-        googleData.username ||
-        googleData.email
+      // Check if user already exists
+      const existingUser = await db.user.findUnique({
+        where: { googleId },
+        select: { id: true, username: true, onboardingComplete: true }
+      });
+
+      // Only auto-generate username for new users who haven't completed onboarding
+      // For existing users, preserve their chosen username
+      let username = googleData.username;
+      
+      if (!existingUser) {
+        // For new users, generate a temporary username from email
+        // This will be replaced during onboarding for developers
+        username = googleData.email
           .split("@")[0]
           .toLowerCase()
           .replace(/[^a-z0-9_-]/g, "");
+      } else if (existingUser.username) {
+        // For existing users, keep their current username
+        username = existingUser.username;
+      }
 
       const user = await db.user.upsert({
         where: { googleId },
         update: {
           name: googleData.name || undefined,
           email: googleData.email,
-          username: username,
-          image: googleData.picture || undefined,
+          // Only update username if it's a new user or if explicitly provided
+          ...(existingUser ? {} : { username: username }),
+          // Don't update image from Google - use only onboarding image
           emailVerified: googleData.verified_email || false,
         },
         create: {
@@ -247,7 +262,7 @@ export class UserService {
           name: googleData.name || undefined,
           email: googleData.email,
           username: username,
-          image: googleData.picture || undefined,
+          // Don't set image from Google - will be set during onboarding
           emailVerified: googleData.verified_email || false,
         },
         include: {
