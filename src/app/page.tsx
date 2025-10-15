@@ -96,7 +96,7 @@ export default function HomePage() {
                 <Link href="/leaderboard" className="font-bold uppercase text-sm hover:text-accent transition-colors">
                   Leaderboard
                 </Link>
-                {user.username && (
+                {user.username && user.role !== 'RECRUITER' && (
                   <Link href={`/${user.username}`} className="font-bold uppercase text-sm hover:text-accent transition-colors">
                     My Profile
                   </Link>
@@ -159,7 +159,7 @@ export default function HomePage() {
                   Go to Dashboard
                   <ArrowRight className="w-5 h-5" />
                 </Link>
-                {user.username && (
+                {user.username && user.role !== 'RECRUITER' && (
                   <Link href={`/${user.username}`} className="btn-secondary inline-flex items-center gap-2">
                     View My Profile
                     <ArrowRight className="w-5 h-5" />
