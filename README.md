@@ -309,13 +309,3 @@ Automated deployment via GitHub Actions:
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-**Made with ❤️ by the ClueFind Team**
-
-⭐ Star us on GitHub if you find this project helpful!
-
-</div>
