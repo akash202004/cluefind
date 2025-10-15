@@ -334,8 +334,6 @@ function OverviewPanel({
             Go to Social Links Form
           </a>
         </div>
-
-        
       </div>
     </div>
   );
@@ -853,7 +851,9 @@ function SocialLinksPanel({
   const addLink = () => {
     if (!newLink.platform || !newLink.url) return;
     if (!isValidHttpUrl(newLink.url)) {
-      toast.error("Invalid URL. Hint: include https:// e.g. https://example.com");
+      toast.error(
+        "Invalid URL. Hint: include https:// e.g. https://example.com"
+      );
       return;
     }
     setLinks([...links, { ...newLink }]);
@@ -1007,9 +1007,17 @@ function SocialLinksPanel({
   );
 }
 
-function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: () => Promise<string>; onPrev?: () => void; }) {
+function AIResumeReviewPanel({
+  resolveProfileId,
+  onPrev,
+}: {
+  resolveProfileId: () => Promise<string>;
+  onPrev?: () => void;
+}) {
   const [resumeText, setResumeText] = useState<string>("");
-  const [reviewSections, setReviewSections] = useState<Array<{ title: string; content: string }>>([]);
+  const [reviewSections, setReviewSections] = useState<
+    Array<{ title: string; content: string }>
+  >([]);
   const [activeIdx, setActiveIdx] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const [resumeLoading, setResumeLoading] = useState<boolean>(true);
@@ -1023,8 +1031,8 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
         if (resp.ok) {
           setResumeText(json.data.resumeContent || "");
         }
-      } catch (_) {}
-      finally {
+      } catch (_) {
+      } finally {
         setResumeLoading(false);
       }
     };
@@ -1034,7 +1042,9 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
   const cleanText = (s: string) => {
     const lines = s.replace(/\r\n?/g, "\n").split("\n");
     const cleaned = lines
-      .map((l) => l.replace(/^\s*[-•]\s*\[ \]\s*/g, "- ").replace(/^\s*[-•]\s*/g, "- "))
+      .map((l) =>
+        l.replace(/^\s*[-•]\s*\[ \]\s*/g, "- ").replace(/^\s*[-•]\s*/g, "- ")
+      )
       .filter((l) => {
         const t = l.trim();
         if (t === "-" || t === "–" || t === "—") return false;
@@ -1042,7 +1052,10 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
         return true;
       });
     // collapse extra blank lines
-    return cleaned.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    return cleaned
+      .join("\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
   };
 
   const handleGenerate = async () => {
@@ -1061,7 +1074,9 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
       });
       const json = await resp.json();
       if (!resp.ok) throw new Error(json.error || "Failed to generate review");
-      const raw = (json.review || "").replace(/^#{1,6}\s*/gm, "").replace(/\*\*/g, "");
+      const raw = (json.review || "")
+        .replace(/^#{1,6}\s*/gm, "")
+        .replace(/\*\*/g, "");
       // Parse sections by numbered headings 0) .. 7)
       const titles = [
         "0) Roast",
@@ -1073,13 +1088,22 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
         "6) 3 Strong Headlines",
         "7) Final Action Plan",
       ];
-      const pattern = new RegExp(`^(?:${titles.map(t => t.replace(/[()*+?.^$|\\]/g, "\\$&")).join("| ")})`, "m");
+      const pattern = new RegExp(
+        `^(?:${titles
+          .map((t) => t.replace(/[()*+?.^$|\\]/g, "\\$&"))
+          .join("| ")})`,
+        "m"
+      );
       // Split with custom logic
       const indices: Array<{ idx: number; title: string; start: number }> = [];
       titles.forEach((t) => {
-        const re = new RegExp(`^\\s*${t.replace(/[()*+?.^$|\\]/g, "\\$&")}\\s*`, "m");
+        const re = new RegExp(
+          `^\\s*${t.replace(/[()*+?.^$|\\]/g, "\\$&")}\\s*`,
+          "m"
+        );
         const m = raw.match(re);
-        if (m && m.index !== undefined) indices.push({ idx: Number(t[0]), title: t, start: m.index });
+        if (m && m.index !== undefined)
+          indices.push({ idx: Number(t[0]), title: t, start: m.index });
       });
       indices.sort((a, b) => a.start - b.start);
       const sections: Array<{ title: string; content: string }> = [];
@@ -1088,13 +1112,24 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
         const next = indices[i + 1];
         // Start from end of the heading line to avoid stray characters (e.g., line-wrapped 'y')
         const headingLineEnd = raw.indexOf("\n", cur.start);
-        const startPos = headingLineEnd >= 0 ? headingLineEnd + 1 : cur.start + cur.title.length;
-        const slice = raw.substring(startPos).trim().slice(0, next ? next.start - startPos : undefined);
-        sections.push({ title: cur.title.replace(/^\d\)\s*/,'').trim(), content: cleanText(slice.trim()) });
+        const startPos =
+          headingLineEnd >= 0
+            ? headingLineEnd + 1
+            : cur.start + cur.title.length;
+        const slice = raw
+          .substring(startPos)
+          .trim()
+          .slice(0, next ? next.start - startPos : undefined);
+        sections.push({
+          title: cur.title.replace(/^\d\)\s*/, "").trim(),
+          content: cleanText(slice.trim()),
+        });
       }
       if (sections.length === 0) {
         // Fallback: single section
-        setReviewSections([{ title: "Review", content: cleanText(raw.trim()) }]);
+        setReviewSections([
+          { title: "Review", content: cleanText(raw.trim()) },
+        ]);
       } else {
         setReviewSections(sections);
       }
@@ -1107,8 +1142,13 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
 
   return (
     <div className="card-brutalist">
-      <h3 className="text-lg font-black uppercase tracking-wide mb-4">AI Resume Review</h3>
-      <p className="text-sm text-muted-foreground mb-4">Ensure your resume content is added in the Resume section. Then generate an actionable review.</p>
+      <h3 className="text-lg font-black uppercase tracking-wide mb-4">
+        AI Resume Review
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Ensure your resume content is added in the Resume section. Then generate
+        an actionable review.
+      </p>
 
       <div className="flex flex-col gap-3">
         {resumeLoading && (
@@ -1117,7 +1157,11 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
             Checking if your resume is available…
           </div>
         )}
-        <button onClick={handleGenerate} disabled={resumeLoading || !resumeText.trim() || loading} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+        <button
+          onClick={handleGenerate}
+          disabled={resumeLoading || !resumeText.trim() || loading}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           {loading ? (
             <span className="inline-flex items-center gap-2">
               <span className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin"></span>
@@ -1134,7 +1178,9 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
                 <button
                   key={i}
                   onClick={() => setActiveIdx(i)}
-                  className={`btn-outline text-xs px-3 py-1 ${i === activeIdx ? 'bg-muted' : ''}`}
+                  className={`btn-outline text-xs px-3 py-1 ${
+                    i === activeIdx ? "bg-muted" : ""
+                  }`}
                 >
                   {s.title}
                 </button>
@@ -1149,7 +1195,10 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
 
       {onPrev && (
         <div className="flex gap-3 mt-6 pt-6 border-t-2 border-primary">
-          <button onClick={onPrev} className="btn-outline flex-1 flex items-center justify-center gap-2">
+          <button
+            onClick={onPrev}
+            className="btn-outline flex-1 flex items-center justify-center gap-2"
+          >
             <ChevronLeft className="w-4 h-4" />
             Previous
           </button>
@@ -1158,8 +1207,6 @@ function AIResumeReviewPanel({ resolveProfileId, onPrev }: { resolveProfileId: (
     </div>
   );
 }
-
- 
 
 function ViewProfilePanel() {
   const { user, refreshUser } = useAuth();

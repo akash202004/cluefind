@@ -35,10 +35,10 @@ function NavLink({
         onClick();
         window.location.hash = href.split("#")[1] || "";
       }}
-      className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors cursor-pointer ${
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg border-3 transition-all cursor-pointer font-bold uppercase text-xs tracking-wide shadow-brutalist-sm ${
         active
-          ? "bg-muted text-foreground border-l-4 border-primary pl-2"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+          ? "bg-primary text-primary-foreground border-black"
+          : "bg-background text-foreground border-black hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
       }`}
     >
       {children}
@@ -74,7 +74,6 @@ export default function DashboardLayout({
       else if (hash === "#projects") setActive("projects");
       else if (hash === "#social") setActive("social");
       else if (hash === "#ai") setActive("ai");
-      
       else setActive("dashboard");
     };
     updateActive();
@@ -135,7 +134,7 @@ export default function DashboardLayout({
                 className="btn-outline text-sm font-bold uppercase tracking-wide shadow-brutalist-sm"
               >
                 <BarChart3 className="w-4 h-4 mr-2" />
-                Leaderboard
+                Search Students
               </Link>
               <button
                 onClick={handleSignOut}
@@ -162,7 +161,7 @@ export default function DashboardLayout({
               <Link
                 href="/leaderboard"
                 className="btn-outline p-2 shadow-brutalist-sm"
-                title="Leaderboard"
+                title="Search Students"
               >
                 <BarChart3 className="w-4 h-4" />
               </Link>
@@ -204,7 +203,7 @@ export default function DashboardLayout({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <nav className="space-y-1">
+            <nav className="space-y-3">
               <NavLink
                 href="/dashboard"
                 active={active === "dashboard"}
@@ -214,7 +213,7 @@ export default function DashboardLayout({
                 }}
               >
                 <BarChart3 className="w-4 h-4" />
-                <span className="font-medium text-sm">Dashboard</span>
+                <span className="font-bold text-xs">Dashboard</span>
               </NavLink>
 
               <NavLink
@@ -226,7 +225,7 @@ export default function DashboardLayout({
                 }}
               >
                 <User className="w-4 h-4" />
-                <span className="font-medium text-sm">View Profile</span>
+                <span className="font-bold text-xs">View Profile</span>
               </NavLink>
 
               <NavLink
@@ -238,7 +237,7 @@ export default function DashboardLayout({
                 }}
               >
                 <User className="w-4 h-4" />
-                <span className="font-medium text-sm">Edit Profile</span>
+                <span className="font-bold text-xs">Edit Profile</span>
               </NavLink>
 
               <NavLink
@@ -250,7 +249,7 @@ export default function DashboardLayout({
                 }}
               >
                 <FileText className="w-4 h-4" />
-                <span className="font-medium text-sm">Add Resume Content</span>
+                <span className="font-bold text-xs">Add Resume Content</span>
               </NavLink>
 
               <NavLink
@@ -262,7 +261,7 @@ export default function DashboardLayout({
                 }}
               >
                 <Link2 className="w-4 h-4" />
-                <span className="font-medium text-sm">Connect GitHub</span>
+                <span className="font-bold text-xs">Connect GitHub</span>
               </NavLink>
 
               <NavLink
@@ -274,7 +273,7 @@ export default function DashboardLayout({
                 }}
               >
                 <User className="w-4 h-4" />
-                <span className="font-medium text-sm">Skills</span>
+                <span className="font-bold text-xs">Skills</span>
               </NavLink>
 
               <NavLink
@@ -286,7 +285,7 @@ export default function DashboardLayout({
                 }}
               >
                 <FileText className="w-4 h-4" />
-                <span className="font-medium text-sm">Projects Show Off</span>
+                <span className="font-bold text-xs">Projects Show Off</span>
               </NavLink>
 
               <NavLink
@@ -298,8 +297,9 @@ export default function DashboardLayout({
                 }}
               >
                 <Link2 className="w-4 h-4" />
-                <span className="font-medium text-sm">Social Links</span>
+                <span className="font-bold text-xs">Social Links</span>
               </NavLink>
+
               <NavLink
                 href="/dashboard#ai"
                 active={active === "ai"}
@@ -309,9 +309,8 @@ export default function DashboardLayout({
                 }}
               >
                 <Brain className="w-4 h-4" />
-                <span className="font-medium text-sm">AI Resume Review</span>
+                <span className="font-bold text-xs">AI Resume Review</span>
               </NavLink>
-              
             </nav>
           </aside>
 

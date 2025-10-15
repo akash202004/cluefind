@@ -1,6 +1,4 @@
-# =========================
 # Stage 1: Build
-# =========================
 FROM node:18-alpine AS builder
 
 # Set working directory
@@ -21,9 +19,7 @@ COPY . .
 # Build Next.js application
 RUN npm run build
 
-# =========================
 # Stage 2: Production
-# =========================
 FROM node:18-alpine
 
 # Set working directory
