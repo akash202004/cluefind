@@ -104,7 +104,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center border-4 border-primary shadow-brutalist-sm">
-              <span className="text-primary-foreground font-black text-xl">D</span>
+              <span className="text-primary-foreground font-black text-xl">C</span>
             </div>
             <span className="text-2xl font-black uppercase tracking-tight">Cluefind</span>
           </Link>
@@ -139,7 +139,7 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           
           
 
-          {/* Contact and Vouch Buttons - Side by Side */}
+          {/* Contact and Vouch Buttons - Properly Separated */}
           <div className="flex flex-col items-center gap-6 mb-8">
             {/* Vouches Count */}
             <div className="stat-box bg-accent text-accent-foreground">
@@ -147,13 +147,17 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
               <div className="text-sm uppercase tracking-wide opacity-90">Vouches</div>
             </div>
             
-            {/* Contact and Vouch Buttons */}
-            <div className="flex items-center justify-center gap-4">
+            {/* Social Links - Centered */}
+            <div className="w-full flex justify-center">
               <SocialActions socialLinks={socialLinks} email={user.email || undefined} variant="list" />
-              {user.profile?.id && (
-                <VouchButton profileId={user.profile.id} />
-              )}
             </div>
+            
+            {/* Vouch Button - Separate and Centered */}
+            {user.profile?.id && (
+              <div className="flex justify-center">
+                <VouchButton profileId={user.profile.id} />
+              </div>
+            )}
           </div>
         </section>
 

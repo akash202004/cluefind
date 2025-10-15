@@ -65,7 +65,7 @@ export default function SocialActions({ githubUrl, socialLinks, email, variant =
 
   return (
     <div className="flex flex-col items-center">
-      <div className={`flex ${variant === "icons" ? "items-center" : "items-stretch"} justify-center gap-3 flex-wrap max-w-full`}>        
+      <div className={`flex ${variant === "icons" ? "items-center" : "items-stretch"} justify-center gap-3 flex-wrap max-w-full sm:flex-row flex-col`}>        
         {githubUrl && iconButton(<Github className={variant === "icons" ? "w-6 h-6" : "w-5 h-5"} />, githubUrl, "gh")}
         {socialLinks.map((link, idx) => {
           const lower = link.platform.toLowerCase();
