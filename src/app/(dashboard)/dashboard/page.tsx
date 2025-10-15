@@ -697,7 +697,7 @@ function ProjectsPanel({
           </div>
           <div>
             <label className="block text-sm font-bold uppercase tracking-wide text-foreground mb-2">
-              Project URL
+              Project live link
             </label>
             <input
               type="url"
@@ -705,7 +705,7 @@ function ProjectsPanel({
               onChange={(e) =>
                 setNewProject({ ...newProject, url: e.target.value })
               }
-              placeholder="https://github.com/username/project"
+              placeholder="https://demoproject.com"
               className="w-full px-4 py-3 border-4 border-primary rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
