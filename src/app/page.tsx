@@ -12,29 +12,58 @@ export default function HomePage() {
   const router = useRouter();
   const { user, loading: authLoading, hasProfile } = useAuth();
   
-  // Glitch effect for Developer Revolution text
-  const glitch = useGlitch({
+  // Glitch effect for Zap icon in Developer Revolution badge
+  const iconGlitch = useGlitch({
     playMode: 'always',
     createContainers: true,
     hideOverflow: false,
     timing: {
-      duration: 2000,
+      duration: 1500,
       iterations: Infinity,
     },
     glitchTimeSpan: {
-      start: 0.5,
-      end: 0.7,
+      start: 0.4,
+      end: 0.6,
     },
     shake: {
-      velocity: 15,
-      amplitudeX: 0.2,
-      amplitudeY: 0.2,
+      velocity: 25,
+      amplitudeX: 0.4,
+      amplitudeY: 0.4,
     },
     slice: {
-      count: 6,
-      velocity: 15,
-      minHeight: 0.02,
-      maxHeight: 0.15,
+      count: 4,
+      velocity: 25,
+      minHeight: 0.01,
+      maxHeight: 0.1,
+      hueRotate: true,
+    },
+    pulse: false,
+  });
+
+
+  // Glitch effect for Developer text in main heading
+  const developerGlitch = useGlitch({
+    playMode: 'always',
+    createContainers: true,
+    hideOverflow: false,
+    timing: {
+      duration: 3000,
+      iterations: Infinity,
+    },
+    glitchTimeSpan: {
+      start: 0.3,
+      end: 0.8,
+    },
+    shake: {
+      velocity: 20,
+      amplitudeX: 0.3,
+      amplitudeY: 0.3,
+    },
+    slice: {
+      count: 8,
+      velocity: 20,
+      minHeight: 0.03,
+      maxHeight: 0.2,
       hueRotate: true,
     },
     pulse: false,
@@ -130,14 +159,16 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto text-center relative z-10">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent border-4 border-primary rounded-lg font-bold uppercase text-sm tracking-wide shadow-brutalist-sm mb-8 animate-slide-in-up">
-            <Zap className="w-5 h-5" />
-            <span ref={glitch.ref}>Developer Revolution</span>
+            <div ref={iconGlitch.ref}>
+              <Zap className="w-5 h-5" />
+            </div>
+            <span>Developer Revolution</span>
           </div>
 
           {/* Main Heading */}
           <h1 className="text-hero mb-6 animate-slide-in-up">
             Build Your
-            <span className="block text-accent">Developer</span>
+            <span className="block text-accent" ref={developerGlitch.ref}>Developer</span>
             <span className="block">Portfolio</span>
           </h1>
 
@@ -208,37 +239,36 @@ export default function HomePage() {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Portfolio Builder */}
+            {/* AI Resume Review */}
             <div className="card-feature">
               <div className="icon-box-purple">
-                <Target className="w-8 h-8 text-primary" />
+                <Brain className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-black uppercase mb-3">Portfolio Builder</h3>
+              <h3 className="text-xl font-black uppercase mb-3">AI Resume Roast</h3>
               <p className="text-body">
-                Build a clean, credible profile fast—show projects, links, and who you are.
+                Get brutally honest feedback from AI-powered senior engineers. Playful roast followed by actionable, quantified improvements.
               </p>
             </div>
             
-
-            {/* Custom Domains */}
+            {/* AI Profile Summary */}
             <div className="card-feature">
               <div className="icon-box-red">
-                <Calendar className="w-8 h-8 text-primary" />
+                <Target className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-black uppercase mb-3">Custom Domains</h3>
+              <h3 className="text-xl font-black uppercase mb-3">AI Profile Builder</h3>
               <p className="text-body">
-                Use your own domain for a professional portfolio presence that stands out.
+                Generate professional summaries, project descriptions, and skill recommendations powered by GPT-4. Build compelling profiles in minutes.
               </p>
             </div>
 
-            {/* Developer Network */}
+            {/* Skill Endorsement Network */}
             <div className="card-feature">
               <div className="icon-box-indigo">
-                <Zap className="w-8 h-8 text-primary" />
+                <Users className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-black uppercase mb-3">Developer Network</h3>
+              <h3 className="text-xl font-black uppercase mb-3">Skill Endorsements</h3>
               <p className="text-body">
-                Connect with other developers and build your professional network with skill-based discovery.
+                Get vouched for by other developers. Build credibility through peer validation and discover talent through verified skill networks.
               </p>
             </div>
           </div>

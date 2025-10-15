@@ -304,7 +304,7 @@ export default function LeaderboardPage() {
 
             {!searchLoading && searchResults.length > 0 && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between bg-background border-3 border-primary rounded-lg p-6 shadow-brutalist">
+                <div className="flex items-center justify-between bg-background border-4 border-primary rounded-lg p-6 shadow-brutalist">
                   <div>
                     <h3 className="text-2xl font-black uppercase tracking-wide text-primary mb-2">
                       Search Results
@@ -354,7 +354,7 @@ export default function LeaderboardPage() {
                         rank === 1
                           ? "bg-gradient-to-r from-accent/10 to-transparent border-accent"
                           : ""
-                      } ${rank <= 3 ? "border-4" : "border-3"}`}
+                      } ${rank <= 3 ? "border-4" : "border-4"}`}
                     >
                       <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                         {/* Rank */}
@@ -488,12 +488,12 @@ export default function LeaderboardPage() {
             {data && data.pagination.totalPages > 0 && (
               <div className="flex flex-col items-center gap-6 mt-16">
                 {/* Rows per page selector */}
-                <div className="flex items-center gap-4 bg-background border-3 border-primary rounded-lg p-4 shadow-brutalist-sm">
+                <div className="flex items-center gap-4 bg-background border-4 border-primary rounded-lg p-4 shadow-brutalist-sm">
                   <span className="text-sm font-black uppercase tracking-wide">
                     Rows per page
                   </span>
                   <select
-                    className="px-4 py-2 border-3 border-primary rounded-lg bg-background font-bold uppercase text-sm tracking-wide shadow-brutalist-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
+                    className="px-4 py-2 border-4 border-primary rounded-lg bg-background font-bold uppercase text-sm tracking-wide shadow-brutalist-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none"
                     value={pageSize}
                     onChange={(e) => {
                       const next = parseInt(e.target.value);
@@ -522,7 +522,7 @@ export default function LeaderboardPage() {
                     Previous
                   </button>
 
-                  <div className="px-6 py-3 bg-primary text-primary-foreground border-3 border-primary rounded-lg font-black uppercase text-sm tracking-wide shadow-brutalist-sm">
+                  <div className="px-6 py-3 bg-primary text-primary-foreground border-4 border-primary rounded-lg font-black uppercase text-sm tracking-wide shadow-brutalist-sm">
                     Page {page} of {data.pagination.totalPages}
                   </div>
 

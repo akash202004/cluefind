@@ -6,14 +6,14 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Perpetual - Developer Portfolio & Endorsements",
+  title: "Cluefind - Developer Portfolio & Endorsements",
   description: "Showcase your developer portfolio and get verified skill endorsements from colleagues",
   keywords: ["developer", "portfolio", "endorsements", "skills", "projects"],
-  authors: [{ name: "Perpetual Team" }],
-  creator: "Perpetual",
-  publisher: "Perpetual",
+  authors: [{ name: "Cluefind Team" }],
+  creator: "Cluefind",
+  publisher: "Cluefind",
   formatDetection: {
-    email: false,
+   email: false,
     address: false,
     telephone: false,
   },
@@ -22,15 +22,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    title: "Perpetual - Developer Portfolio & Endorsements",
+    title: "Cluefind - Developer Portfolio & Endorsements",
     description: "Showcase your developer portfolio and get verified skill endorsements from colleagues",
-    siteName: "Perpetual",
+    siteName: "Cluefind",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Perpetual - Developer Portfolio & Endorsements",
+    title: "Cluefind - Developer Portfolio & Endorsements",
     description: "Showcase your developer portfolio and get verified skill endorsements from colleagues",
-    creator: "@perpetual",
+    creator: "@Cluefind",
   },
   robots: {
     index: true,

@@ -153,7 +153,7 @@
   /* Badge Styles */
   .badge {
     @apply inline-flex items-center gap-2 px-4 py-2 
-           border-3 border-primary rounded-lg 
+           border-4 border-primary rounded-lg 
            shadow-[4px_4px_0px_0px_rgba(0,0,0,1)];
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
     font-weight: 700;

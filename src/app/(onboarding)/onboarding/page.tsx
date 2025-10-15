@@ -532,7 +532,7 @@ function UsernameStep({
         </h2>
 
         <p className="text-body mb-6">
-          This will be your unique URL: cluefind.com/yourusername
+          This will be your unique URL: cluefind.software/yourusername
         </p>
       </div>
 

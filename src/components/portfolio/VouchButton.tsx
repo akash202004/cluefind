@@ -76,19 +76,26 @@ export default function VouchButton({ profileId, onChange }: VouchButtonProps) {
     }
   };
 
-  const disabled = loading || !user || user.role !== "STUDENT" || !!error && /Self-vouch/i.test(error);
+  const isSelfProfile = !!error && /Self-vouch/i.test(error);
+  const disabled = loading || !user || user.role !== "STUDENT" || isSelfProfile;
 
   return (
     <div className="flex flex-col items-center">
-      <button
-        onClick={handleVouch}
-        disabled={disabled}
-        className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-        aria-disabled={disabled}
-      >
-        {loading ? (hasVouched ? "Unvouching..." : "Vouching...") : hasVouched ? "Unvouch" : "Vouch"}
-      </button>
-      {error && <p className="mt-2 text-sm text-feature-red font-bold">{error}</p>}
+      {isSelfProfile ? (
+        <div className="btn-primary opacity-50 cursor-not-allowed" aria-disabled={true}>
+          Your Profile
+        </div>
+      ) : (
+        <button
+          onClick={handleVouch}
+          disabled={disabled}
+          className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-disabled={disabled}
+        >
+          {loading ? (hasVouched ? "Unvouching..." : "Vouching...") : hasVouched ? "Unvouch" : "Vouch"}
+        </button>
+      )}
+      {error && !isSelfProfile && <p className="mt-2 text-sm text-feature-red font-bold">{error}</p>}
     </div>
   );
 }

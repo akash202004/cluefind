@@ -139,19 +139,21 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           
           
 
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <SocialActions socialLinks={[]} email={user.email || undefined} variant="icons" />
-          </div>
-
-          {/* Vouches */}
-          <div className="flex flex-col items-center gap-4 mb-2">
+          {/* Contact and Vouch Buttons - Side by Side */}
+          <div className="flex flex-col items-center gap-6 mb-8">
+            {/* Vouches Count */}
             <div className="stat-box bg-accent text-accent-foreground">
               <div className="text-2xl font-black mb-1">{user.profile?._count?.vouches ?? 0}</div>
               <div className="text-sm uppercase tracking-wide opacity-90">Vouches</div>
             </div>
-            {user.profile?.id && (
-              <VouchButton profileId={user.profile.id} />
-            )}
+            
+            {/* Contact and Vouch Buttons */}
+            <div className="flex items-center justify-center gap-4">
+              <SocialActions socialLinks={socialLinks} email={user.email || undefined} variant="list" />
+              {user.profile?.id && (
+                <VouchButton profileId={user.profile.id} />
+              )}
+            </div>
           </div>
         </section>
 
@@ -189,7 +191,11 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
                     {project.title || `Project ${idx + 1}`}
                   </h3>
                   {project.description ? (
-                    <p className="text-sm text-muted-foreground mb-4">{project.description}</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {project.description.split(' ').length > 60 
+                        ? `${project.description.split(' ').slice(0, 60).join(' ')}...` 
+                        : project.description}
+                    </p>
                   ) : null}
                   {project.tags && project.tags.length > 0 ? (
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -213,17 +219,6 @@ export default async function PortfolioPage({ params }: PortfolioPageProps) {
           )}
         </section>
 
-        {/* Social links Section */}
-        <section className="mb-12">
-          <h2 className="text-section mb-8 text-center">Social Links</h2>
-          {socialLinks.length === 0 && !githubUrl ? (
-            <p className="text-center text-muted-foreground">No social links yet.</p>
-          ) : (
-            <div className="flex flex-wrap justify-center gap-3">
-              <SocialActions githubUrl={githubUrl} socialLinks={socialLinks} email={user.email || undefined} variant="list" />
-            </div>
-          )}
-        </section>
 
         
       </main>
