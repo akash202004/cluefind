@@ -134,6 +134,7 @@
     letter-spacing: 0.025em;
   }
 
+
   /* MindGrid Card Styles */
   .card-brutalist {
     @apply bg-card border-4 border-primary rounded-lg p-6 

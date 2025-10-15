@@ -6,10 +6,39 @@ import Link from "next/link";
 import { Brain, Users, Zap, Target, Calendar, TrendingUp, Github, Linkedin, ArrowRight, Play } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import ClientOnly from "@/components/ui/ClientOnly";
+import { useGlitch } from "react-powerglitch";
 
 export default function HomePage() {
   const router = useRouter();
   const { user, loading: authLoading, hasProfile } = useAuth();
+  
+  // Glitch effect for Developer Revolution text
+  const glitch = useGlitch({
+    playMode: 'always',
+    createContainers: true,
+    hideOverflow: false,
+    timing: {
+      duration: 2000,
+      iterations: Infinity,
+    },
+    glitchTimeSpan: {
+      start: 0.5,
+      end: 0.7,
+    },
+    shake: {
+      velocity: 15,
+      amplitudeX: 0.2,
+      amplitudeY: 0.2,
+    },
+    slice: {
+      count: 6,
+      velocity: 15,
+      minHeight: 0.02,
+      maxHeight: 0.15,
+      hueRotate: true,
+    },
+    pulse: false,
+  });
 
   // Redirect authenticated users with completed onboarding to dashboard
   useEffect(() => {
@@ -102,7 +131,7 @@ export default function HomePage() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent border-4 border-primary rounded-lg font-bold uppercase text-sm tracking-wide shadow-brutalist-sm mb-8 animate-slide-in-up">
             <Zap className="w-5 h-5" />
-            <span>Developer Revolution</span>
+            <span ref={glitch.ref}>Developer Revolution</span>
           </div>
 
           {/* Main Heading */}
