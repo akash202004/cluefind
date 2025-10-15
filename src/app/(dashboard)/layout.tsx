@@ -134,7 +134,7 @@ export default function DashboardLayout({
                 className="btn-outline text-sm font-bold uppercase tracking-wide shadow-brutalist-sm"
               >
                 <BarChart3 className="w-4 h-4 mr-2" />
-                Search Students
+                Search Developers
               </Link>
               <button
                 onClick={handleSignOut}
@@ -161,7 +161,7 @@ export default function DashboardLayout({
               <Link
                 href="/leaderboard"
                 className="btn-outline p-2 shadow-brutalist-sm"
-                title="Search Students"
+                title="Search Developers"
               >
                 <BarChart3 className="w-4 h-4" />
               </Link>

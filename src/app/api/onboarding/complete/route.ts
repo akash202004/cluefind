@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For students, validate profile fields
+    // For developers, validate profile fields
     if (role === 'STUDENT' && (!profileImage || !username || !bio)) {
       return NextResponse.json(
-        { error: "All profile fields are required for students" },
+        { error: "All profile fields are required for developers" },
         { status: 400 }
       );
     }

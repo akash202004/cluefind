@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
       image: student.image,
       skills: student.profile?.skills || [],
       vouchCount: student.profile?._count.vouches || 0,
-      repoCount: student.profile?._count.repos || 0,
       createdAt: student.createdAt,
     }));
 

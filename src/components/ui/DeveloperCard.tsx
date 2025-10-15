@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { User, Github, Star, Heart } from "lucide-react";
 
-interface Student {
+interface Developer {
   id: string;
   username: string;
   name: string;
@@ -10,14 +10,13 @@ interface Student {
   image?: string;
   skills: string[];
   vouchCount: number;
-  repoCount: number;
 }
 
-interface StudentCardProps {
-  student: Student;
+interface DeveloperCardProps {
+  developer: Developer;
 }
 
-export default function StudentCard({ student }: StudentCardProps) {
+export default function DeveloperCard({ developer }: DeveloperCardProps) {
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -32,10 +31,10 @@ export default function StudentCard({ student }: StudentCardProps) {
       <div className="flex items-start gap-4">
         {/* Profile Image */}
         <div className="flex-shrink-0">
-          {student.image ? (
+          {developer.image ? (
             <Image
-              src={student.image}
-              alt={student.name}
+              src={developer.image}
+              alt={developer.name}
               width={64}
               height={64}
               className="w-16 h-16 rounded-lg border-3 border-primary object-cover"
@@ -43,7 +42,7 @@ export default function StudentCard({ student }: StudentCardProps) {
           ) : (
             <div className="w-16 h-16 bg-primary rounded-lg border-3 border-primary flex items-center justify-center">
               <span className="text-primary-foreground font-black text-lg">
-                {getInitials(student.name)}
+                {getInitials(developer.name)}
               </span>
             </div>
           )}
@@ -54,13 +53,13 @@ export default function StudentCard({ student }: StudentCardProps) {
           <div className="flex items-start justify-between mb-2">
             <div>
               <Link
-                href={`/${student.username}`}
+                href={`/${developer.username}`}
                 className="text-lg font-black hover:text-primary transition-colors"
               >
-                {student.name}
+                {developer.name}
               </Link>
               <p className="text-sm text-muted-foreground font-bold">
-                @{student.username}
+                @{developer.username}
               </p>
             </div>
 
@@ -68,26 +67,22 @@ export default function StudentCard({ student }: StudentCardProps) {
             <div className="flex items-center gap-4 text-sm">
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Heart className="w-4 h-4" />
-                <span className="font-bold">{student.vouchCount}</span>
-              </div>
-              <div className="flex items-center gap-1 text-muted-foreground">
-                <Github className="w-4 h-4" />
-                <span className="font-bold">{student.repoCount}</span>
+                <span className="font-bold">{developer.vouchCount}</span>
               </div>
             </div>
           </div>
 
           {/* Bio */}
-          {student.bio && (
+          {developer.bio && (
             <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-              {student.bio}
+              {developer.bio}
             </p>
           )}
 
           {/* Skills */}
-          {student.skills && student.skills.length > 0 && (
+          {developer.skills && developer.skills.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {student.skills.slice(0, 4).map((skill, index) => (
+              {developer.skills.slice(0, 4).map((skill, index) => (
                 <span
                   key={index}
                   className="px-2 py-1 bg-accent text-accent-foreground text-xs font-bold uppercase rounded border-2 border-primary"
@@ -95,9 +90,9 @@ export default function StudentCard({ student }: StudentCardProps) {
                   {skill}
                 </span>
               ))}
-              {student.skills.length > 4 && (
+              {developer.skills.length > 4 && (
                 <span className="px-2 py-1 bg-muted text-muted-foreground text-xs font-bold uppercase rounded border-2 border-primary">
-                  +{student.skills.length - 4} more
+                  +{developer.skills.length - 4} more
                 </span>
               )}
             </div>

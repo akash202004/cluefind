@@ -15,7 +15,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import SearchBar from "@/components/ui/SearchBar";
-import StudentCard from "@/components/ui/StudentCard";
+import DeveloperCard from "@/components/ui/DeveloperCard";
 import toast from "react-hot-toast";
 
 interface Student {
@@ -26,7 +26,6 @@ interface Student {
   image?: string;
   skills: string[];
   vouchCount: number;
-  repoCount: number;
 }
 
 interface LeaderboardData {
@@ -58,7 +57,7 @@ export default function LeaderboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
-  // Search function
+  // Search function (skills-only)
   const handleSearch = useCallback(
     async (query: string) => {
       setSearchQuery(query);
@@ -79,13 +78,17 @@ export default function LeaderboardPage() {
 
       setSearchLoading(true);
       try {
-        const response = await fetch(
-          `/api/profiles?search=${encodeURIComponent(query)}&limit=50`
-        );
+        const skills = query
+          .split(/[,\s]+/)
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .join(",");
+        const url = `/api/profiles?skills=${encodeURIComponent(skills)}&limit=50`;
+        const response = await fetch(url);
         const data = await response.json();
 
         if (response.ok && data.success) {
-          // Transform profiles to student format
+          // Transform profiles to developer format
           const transformedResults = (data.data || []).map((profile: any) => ({
             id: profile.id,
             username: profile.user?.username || "",
@@ -94,11 +97,10 @@ export default function LeaderboardPage() {
             image: profile.user?.image || "",
             skills: profile.skills || [],
             vouchCount: profile.vouchCount || 0,
-            repoCount: profile.repoCount || 0,
           }));
           setSearchResults(transformedResults);
         } else {
-          toast.error("Failed to search students");
+          toast.error("Failed to search developers");
           setSearchResults([]);
         }
       } catch (error) {
@@ -259,7 +261,7 @@ export default function LeaderboardPage() {
         <div className="max-w-2xl mx-auto mb-6">
           <SearchBar
             onSearch={handleSearch}
-            placeholder="Search by name, skills, bio, projects, or technologies..."
+            placeholder="Search developers by skills (comma or space separated)..."
             className="w-full"
             value={searchQuery}
           />
@@ -272,7 +274,7 @@ export default function LeaderboardPage() {
               <div className="text-center py-16">
                 <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
                 <p className="text-muted-foreground font-black uppercase tracking-wide text-lg">
-                  Searching students...
+                  Searching developers...
                 </p>
               </div>
             )}
@@ -283,7 +285,7 @@ export default function LeaderboardPage() {
                   <span className="text-2xl">🔍</span>
                 </div>
                 <p className="text-muted-foreground font-black text-xl mb-4">
-                  No students found for &quot;{searchQuery}&quot;
+                  No developers found for &quot;{searchQuery}&quot;
                 </p>
                 <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
                   Try searching with different keywords, skills, or check your
@@ -310,7 +312,7 @@ export default function LeaderboardPage() {
                       Search Results
                     </h3>
                     <p className="text-muted-foreground font-bold">
-                      Found {searchResults.length} students matching &quot;
+                      Found {searchResults.length} developers matching &quot;
                       {searchQuery}&quot;
                     </p>
                   </div>
@@ -327,7 +329,7 @@ export default function LeaderboardPage() {
                 </div>
                 <div className="max-w-5xl mx-auto space-y-6">
                   {searchResults.map((student) => (
-                    <StudentCard key={student.id} student={student} />
+                    <DeveloperCard key={student.id} developer={student} />
                   ))}
                 </div>
               </div>
@@ -476,7 +478,7 @@ export default function LeaderboardPage() {
                   <span className="text-3xl">👥</span>
                 </div>
                 <p className="text-muted-foreground font-black text-xl">
-                  No student profiles found.
+                  No developer profiles found.
                 </p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Be the first to create your profile!

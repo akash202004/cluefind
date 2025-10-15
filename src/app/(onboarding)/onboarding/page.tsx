@@ -107,14 +107,14 @@ export default function OnboardingPage() {
         throw new Error("Please select a role");
       }
 
-      // For students, require all fields
+  // For developers, require all fields
       if (onboardingData.role === 'STUDENT') {
         if (
           !onboardingData.profileImage ||
           !onboardingData.username ||
           !onboardingData.bio
         ) {
-          throw new Error("All fields are required for student profile");
+          throw new Error("All fields are required for developer profile");
         }
       }
 

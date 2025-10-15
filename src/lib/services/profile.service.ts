@@ -20,7 +20,6 @@ export class ProfileService {
         data,
         include: {
           user: true,
-          repos: true,
           _count: {
             select: {
               vouches: true,
@@ -57,9 +56,6 @@ export class ProfileService {
         where: { id },
         include: {
           user: true,
-          repos: {
-            orderBy: { createdAt: "desc" },
-          },
           vouches: {
             orderBy: { createdAt: "desc" },
             take: 10,
@@ -67,7 +63,6 @@ export class ProfileService {
           _count: {
             select: {
               vouches: true,
-              repos: true,
             },
           },
         },
@@ -89,9 +84,6 @@ export class ProfileService {
         where: { userId },
         include: {
           user: true,
-          repos: {
-            orderBy: { createdAt: "desc" },
-          },
           vouches: {
             orderBy: { createdAt: "desc" },
             take: 10,
@@ -99,7 +91,6 @@ export class ProfileService {
           _count: {
             select: {
               vouches: true,
-              repos: true,
             },
           },
         },
@@ -122,7 +113,6 @@ export class ProfileService {
         data,
         include: {
           user: true,
-          repos: true,
           _count: {
             select: {
               vouches: true,
@@ -204,40 +194,25 @@ export class ProfileService {
               mode: "insensitive" as const,
             },
           },
-          // Repository name search
-          {
-            repos: {
-              some: {
-                name: { contains: searchTerm, mode: "insensitive" as const },
-              },
-            },
-          },
-          // Repository description search
-          {
-            repos: {
-              some: {
-                description: {
-                  contains: searchTerm,
-                  mode: "insensitive" as const,
-                },
-              },
-            },
-          },
-          // Repository languages search
-          {
-            repos: {
-              some: {
-                languages: {
-                  hasSome: [searchTerm],
-                },
-              },
-            },
-          },
         ];
       }
 
       if (skills) {
-        const skillArray = skills.split(",").map((s) => s.trim());
+        // Build a case-insensitive skills filter by including common variants
+        const rawSkills = skills
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const skillArray = Array.from(
+          new Set(
+            rawSkills.flatMap((s) => [
+              s,
+              s.toLowerCase(),
+              s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(),
+              s.toUpperCase(),
+            ])
+          )
+        );
         // If search is already applied, we need to combine with AND
         if (where.OR) {
           where = {
@@ -264,18 +239,9 @@ export class ProfileService {
           take: limit,
           include: {
             user: true,
-            repos: {
-              select: {
-                id: true,
-                name: true,
-                description: true,
-                languages: true,
-              },
-            },
             _count: {
               select: {
                 vouches: true,
-                repos: true,
               },
             },
           },
