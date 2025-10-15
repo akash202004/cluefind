@@ -11,7 +11,7 @@ datasource db {
 }
 
 enum Role {
-  STUDENT 
+  DEVELOPER 
   RECRUITER
 }
 
@@ -20,7 +20,7 @@ model User {
   email               String   @unique
   emailVerified       Boolean  @default(false)
   name                String?
-  role                Role   @default(STUDENT)
+  role                Role   @default(DEVELOPER)
   username            String   @unique
   image               String?
   bio                 String?

@@ -16,7 +16,7 @@ interface User {
   image?: string;
   googleId: string;
   username?: string;
-  role?: 'STUDENT' | 'RECRUITER';
+  role?: 'DEVELOPER' | 'RECRUITER';
 }
 
 interface AuthContextType {

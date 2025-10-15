@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { Role } from "@prisma/client";
 import { CreateUserInput, UpdateUserInput } from "@/lib/validations/user";
 
 export class UserService {
@@ -33,13 +34,9 @@ export class UserService {
         include: {
           profile: {
             include: {
-              repos: {
-                orderBy: { createdAt: "desc" },
-              },
               _count: {
                 select: {
                   vouches: true,
-                  repos: true,
                 },
               },
             },
@@ -64,13 +61,10 @@ export class UserService {
         include: {
           profile: {
             include: {
-              repos: {
-                orderBy: { createdAt: "desc" },
-              },
+            
               _count: {
                 select: {
                   vouches: true,
-                  repos: true,
                 },
               },
             },
@@ -127,12 +121,11 @@ export class UserService {
           include: {
             profile: {
               include: {
-                _count: {
-                  select: {
-                    vouches: true,
-                    repos: true,
-                  },
+              _count: {
+                select: {
+                  vouches: true,
                 },
+              },
               },
             },
           },
@@ -155,15 +148,15 @@ export class UserService {
     }
   }
 
-  async getAllStudentProfiles(page = 1, limit = 20) {
+  async getAllDeveloperProfiles(page = 1, limit = 20) {
     try {
       const skip = (page - 1) * limit;
 
-      // Only get users with STUDENT role and profiles
+      // Only get users with DEVELOPER role and profiles
       const [students, total] = await Promise.all([
         db.user.findMany({
           where: {
-            role: 'STUDENT',
+            role: Role.DEVELOPER,
             profile: {
               isNot: null,
             },
@@ -176,7 +169,6 @@ export class UserService {
                 _count: {
                   select: {
                     vouches: true,
-                    repos: true,
                   },
                 },
               },
@@ -192,7 +184,7 @@ export class UserService {
         }),
         db.user.count({
           where: {
-            role: 'STUDENT',
+            role: Role.DEVELOPER,
             profile: {
               isNot: null,
             },
@@ -320,7 +312,7 @@ export class UserService {
   async completeOnboarding(
     googleId: string,
     onboardingData: {
-      role: 'STUDENT' | 'RECRUITER';
+      role: 'DEVELOPER' | 'RECRUITER';
       profileImage?: string;
       username?: string;
       bio?: string;
@@ -337,8 +329,8 @@ export class UserService {
         throw new Error("User not found. Please sign in again.");
       }
 
-      // For students, validate username uniqueness
-      if (onboardingData.role === 'STUDENT' && onboardingData.username) {
+      // For developers, validate username uniqueness
+      if (onboardingData.role === 'DEVELOPER' && onboardingData.username) {
         const existingUserWithUsername = await db.user.findUnique({
           where: { username: onboardingData.username },
         });
@@ -351,11 +343,11 @@ export class UserService {
       // Update user and create profile in a transaction
       const result = await db.$transaction(async (tx) => {
         // For students: update with full profile data
-        if (onboardingData.role === 'STUDENT') {
+        if (onboardingData.role === 'DEVELOPER') {
           const user = await tx.user.update({
             where: { googleId },
             data: {
-              role: 'STUDENT',
+              role: Role.DEVELOPER,
               name: onboardingData.name || onboardingData.username,
               username: onboardingData.username!,
               bio: onboardingData.bio!,

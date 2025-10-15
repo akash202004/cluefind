@@ -77,7 +77,7 @@ export default function VouchButton({ profileId, onChange }: VouchButtonProps) {
   };
 
   const isSelfProfile = !!error && /Self-vouch/i.test(error);
-  const disabled = loading || !user || user.role !== "STUDENT" || isSelfProfile;
+  const disabled = loading || !user || user.role !== "DEVELOPER" || isSelfProfile;
 
   return (
     <div className="flex flex-col items-center">

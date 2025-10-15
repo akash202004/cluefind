@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For developers, validate profile fields
-    if (role === 'STUDENT' && (!profileImage || !username || !bio)) {
+    if (role === 'DEVELOPER' && (!profileImage || !username || !bio)) {
       return NextResponse.json(
         { error: "All profile fields are required for developers" },
         { status: 400 }

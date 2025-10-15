@@ -3,7 +3,7 @@ import { UserService } from "@/lib/services/user.service";
 
 /**
  * GET /api/leaderboard
- * Fetch all student profiles for the leaderboard
+ * Fetch all developer profiles for the leaderboard
  */
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
 
     const userService = new UserService();
-    const result = await userService.getAllStudentProfiles(page, limit);
+    const result = await userService.getAllDeveloperProfiles(page, limit);
 
     // Transform the data to include only necessary fields
     const students = result.students.map((student) => ({

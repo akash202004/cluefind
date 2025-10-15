@@ -15,7 +15,7 @@ import ClientOnly from "@/components/ui/ClientOnly";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface OnboardingData {
-  role: 'STUDENT' | 'RECRUITER' | null;
+  role: 'DEVELOPER' | 'RECRUITER' | null;
   profileImage: string | null;
   username: string;
   bio: string;
@@ -108,7 +108,7 @@ export default function OnboardingPage() {
       }
 
   // For developers, require all fields
-      if (onboardingData.role === 'STUDENT') {
+      if (onboardingData.role === 'DEVELOPER') {
         if (
           !onboardingData.profileImage ||
           !onboardingData.username ||
@@ -222,7 +222,7 @@ export default function OnboardingPage() {
           {currentStep === 1 && (
             <RoleSelectionStep
               data={onboardingData.role}
-              onUpdate={(value) => updateData("role", value as 'STUDENT' | 'RECRUITER')}
+              onUpdate={(value) => updateData("role", value as 'DEVELOPER' | 'RECRUITER')}
             />
           )}
 
@@ -259,7 +259,7 @@ export default function OnboardingPage() {
           </button>
 
           <div className="flex items-center space-x-2">
-            {onboardingData.role === 'STUDENT' ? (
+            {onboardingData.role === 'DEVELOPER' ? (
               [1, 2, 3, 4].map((step) => (
                 <div
                   key={step}
@@ -282,7 +282,7 @@ export default function OnboardingPage() {
             disabled={!isStepComplete(currentStep)}
             className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {(currentStep === 4 && onboardingData.role === 'STUDENT') || (currentStep === 1 && onboardingData.role === 'RECRUITER') ? "Complete Setup" : "Next"}
+            {(currentStep === 4 && onboardingData.role === 'DEVELOPER') || (currentStep === 1 && onboardingData.role === 'RECRUITER') ? "Complete Setup" : "Next"}
             <ArrowRight className="w-4 h-4 ml-2" />
           </button>
         </div>
@@ -296,7 +296,7 @@ function RoleSelectionStep({
   data,
   onUpdate,
 }: {
-  data: 'STUDENT' | 'RECRUITER' | null;
+  data: 'DEVELOPER' | 'RECRUITER' | null;
   onUpdate: (value: string) => void;
 }) {
   return (
@@ -314,11 +314,11 @@ function RoleSelectionStep({
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-        {/* Student Option */}
+        {/* Developer Option */}
         <button
-          onClick={() => onUpdate('STUDENT')}
+          onClick={() => onUpdate('DEVELOPER')}
           className={`p-6 border-4 rounded-lg transition-all ${
-            data === 'STUDENT'
+            data === 'DEVELOPER'
               ? 'border-accent bg-accent/10 shadow-brutalist-lg'
               : 'border-primary bg-background hover:shadow-brutalist-md'
           }`}
@@ -327,7 +327,7 @@ function RoleSelectionStep({
             <User className="w-8 h-8 text-primary" />
           </div>
           <h3 className="text-lg font-black uppercase tracking-wide mb-2">
-            Student / Developer
+            Developer
           </h3>
           <p className="text-sm text-muted-foreground">
             Create your portfolio, showcase your projects, and get endorsed by peers
