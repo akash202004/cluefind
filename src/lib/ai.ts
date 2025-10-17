@@ -81,7 +81,7 @@ export const aiService = {
             ].join("\n"),
           },
         ],
-        temperature: 0.3,
+        temperature: 0.0,
         max_tokens: 700,
       });
       return (
